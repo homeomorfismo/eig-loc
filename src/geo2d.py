@@ -10,7 +10,12 @@ def make_unit_square() -> SplineGeometry:
     Create a unit square mesh.
     """
     geo = SplineGeometry()
-    geo.AddRectangle((0, 0), (1, 1), bcs='boundary')
+    points = [(0, 0), (1, 0), (1, 1), (0, 1)]
+    points_ids = [geo.AppendPoint(*point) for point in points]
+    lines = [[["line", points_ids[i % 4], points_ids[(i + 1) % 4]], "boundary"]
+             for i in range(4)]
+    for lines, bc in lines:
+        geo.Append(lines, bc=bc)
     return geo
 
 

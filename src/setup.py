@@ -67,12 +67,14 @@ if __name__ == "__main__":
     ex_mesh = Mesh(make_unit_square().GenerateMesh(maxh=0.3))
     Draw(ex_mesh)
     input('Press Enter to continue...')
+
     matrix, mass, rhs, space = setup_laplace(ex_mesh)
     print(f'Number of DOFs: {space.ndof}'
           f'Bilinear form a: {matrix.mat}'
           f'Linear form f: {rhs.vec}'
           f'Mass form m: {mass.mat}')
     input('Press Enter to continue...')
+
     matrix, mass, rhs, space = setup_helmholtz(ex_mesh, 1.0)
     print(f'Number of DOFs: {space.ndof}'
           f'Bilinear form a: {matrix.mat}'

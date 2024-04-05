@@ -2,6 +2,7 @@
 Solved for the different PDE problems
 """
 from ngsolve import GridFunction, Draw, Mesh, x, y
+from ngsolve import H1, dx, BilinearForm, LinearForm, grad
 from geo2d import make_unit_square
 from setup import setup_laplace, setup_helmholtz
 
@@ -28,13 +29,13 @@ if __name__ == "__main__":
     input("Press any key to continue...")
 
     # Example: Solve for the Laplace problem
-    matrix, mass, rhs, space = setup_laplace(ex_mesh)
+    matrix, mass, rhs, space = setup_laplace(ex_mesh, order=5)
     sol = solve_landscape(matrix, rhs, space)
     Draw(sol, ex_mesh, name="Laplace")
     input("Press any key to continue...")
 
-    # Example: u = x*(1-x)*y*(1-y)
-    ex_gf = GridFunction(space)
-    ex_gf.Set(x*(1-x)*y*(1-y))
-    Draw(ex_gf, ex_mesh, name="Example")
+    # Example: Solve for the Helmholtz problem
+    matrix, mass, rhs, space = setup_helmholtz(ex_mesh, 1.0, order=5)
+    sol = solve_landscape(matrix, rhs, space)
+    Draw(sol, ex_mesh, name="Helmholtz")
     input("Press any key to continue...")
