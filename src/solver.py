@@ -1,5 +1,5 @@
 """
-Solved for the different PDE problems
+Solver for the different PDE problems
 """
 
 from ngsolve import GridFunction, Draw, Mesh
