@@ -1,20 +1,17 @@
 """
 Set up different systems of PDEs
 """
-from ngsolve import (
-        H1, grad, dx, Mesh, Draw, BilinearForm, LinearForm)
+
+from ngsolve import H1, grad, dx, Mesh, Draw, BilinearForm, LinearForm
 from geo2d import make_unit_square
 
 
-def setup_laplace(
-        mesh,
-        order: int = 1,
-        is_complex: bool = True):
+def setup_laplace(mesh, order: int = 1, is_complex: bool = True):
     """
     Set up the Laplace problem
     """
     # RHS
-    fes = H1(mesh, order=order, complex=is_complex, dirichlet='boundary')
+    fes = H1(mesh, order=order, complex=is_complex, dirichlet="boundary")
     u, v = fes.TnT()
     a = BilinearForm(fes)
     a += grad(u) * grad(v) * dx
@@ -28,16 +25,12 @@ def setup_laplace(
     return a, m, f, fes
 
 
-def setup_helmholtz(
-        mesh,
-        coeff: float,
-        order: int = 1,
-        is_complex: bool = True):
+def setup_helmholtz(mesh, coeff: float, order: int = 1, is_complex: bool = True):
     """
     Set up the Helmholtz problem
     """
     # RHS
-    fes = H1(mesh, order=order, complex=is_complex, dirichlet='boundary')
+    fes = H1(mesh, order=order, complex=is_complex, dirichlet="boundary")
     u, v = fes.TnT()
     a = BilinearForm(fes)
     a += (grad(u) * grad(v) + coeff * u * v) * dx
@@ -60,24 +53,28 @@ def assemble(*args) -> None:
             form.Assemble()
         except AttributeError:
             # TODO larger heap size
-            print(f'Unable to assemble {form}')
+            print(f"Unable to assemble {form}")
 
 
 if __name__ == "__main__":
     ex_mesh = Mesh(make_unit_square().GenerateMesh(maxh=0.3))
     Draw(ex_mesh)
-    input('Press Enter to continue...')
+    input("Press Enter to continue...")
 
     matrix, mass, rhs, space = setup_laplace(ex_mesh)
-    print(f'Number of DOFs: {space.ndof}'
-          f'Bilinear form a: {matrix.mat}'
-          f'Linear form f: {rhs.vec}'
-          f'Mass form m: {mass.mat}')
-    input('Press Enter to continue...')
+    print(
+        f"Number of DOFs: {space.ndof}"
+        f"Bilinear form a: {matrix.mat}"
+        f"Linear form f: {rhs.vec}"
+        f"Mass form m: {mass.mat}"
+    )
+    input("Press Enter to continue...")
 
     matrix, mass, rhs, space = setup_helmholtz(ex_mesh, 1.0)
-    print(f'Number of DOFs: {space.ndof}'
-          f'Bilinear form a: {matrix.mat}'
-          f'Linear form f: {rhs.vec}'
-          f'Mass form m: {mass.mat}')
-    input('Press Enter to continue...')
+    print(
+        f"Number of DOFs: {space.ndof}"
+        f"Bilinear form a: {matrix.mat}"
+        f"Linear form f: {rhs.vec}"
+        f"Mass form m: {mass.mat}"
+    )
+    input("Press Enter to continue...")
