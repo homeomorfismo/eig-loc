@@ -5,7 +5,7 @@ Solver for the different PDE problems
 from ngsolve import GridFunction, Draw, Mesh
 from pyeigfeast import NGvecs, SpectralProjNG
 from geo2d import make_unit_square
-from setup import setup_laplace, setup_helmholtz
+from setup import setup_laplace, setup_helmholtz, setup_adv_diff, setup_adv_diff_dg
 
 
 def solve_landscape(a, f, fes) -> GridFunction:
@@ -117,3 +117,39 @@ if __name__ == "__main__":
         Draw(right_ev[i], ex_mesh, name=f"Right Eigenvector Helmholtz {i}")
         Draw(left_ev[i], ex_mesh, name=f"Left Eigenvector Helmholtz {i}")
     input("Press any key to continue...")
+
+    print("Solving for the advection-diffusion problem...\n")
+    matrix, mass, rhs, space = setup_adv_diff(ex_mesh, 1.0, 1.0, order=5)
+    sol = solve_landscape(matrix, rhs, space)
+    Draw(sol, ex_mesh, name="Advection-Diffusion")
+    input("Press any key to continue...")
+
+    print("Solving for the eigenvalue problem for the advection-diffusion problem...\n")
+    right_ev, left_ev, lambdas = solve_eigenvalue(
+        matrix, mass, space, center=9.0, radius=0.1
+    )
+    for i, lam in enumerate(lambdas):
+        print(f"Eigenvalue {i}: {lam}")
+        Draw(right_ev[i], ex_mesh, name=f"Right Eigenvector Advection-Diffusion {i}")
+        Draw(left_ev[i], ex_mesh, name=f"Left Eigenvector Advection-Diffusion {i}")
+    input("Press any key to continue...")
+
+    print("Solving for the advection-diffusion DG problem...\n")
+    matrix, mass, rhs, space = setup_adv_diff_dg(ex_mesh, 1.0, 1.0, 0.5, order=5)
+    sol = solve_landscape(matrix, rhs, space)
+    Draw(sol, ex_mesh, name="Advection-Diffusion DG")
+    input("Press any key to continue...")
+
+    print(
+        "Solving for the eigenvalue problem for the advection-diffusion DG problem...\n"
+    )
+    right_ev, left_ev, lambdas = solve_eigenvalue(
+        matrix, mass, space, center=9.0, radius=0.1
+    )
+    for i, lam in enumerate(lambdas):
+        print(f"Eigenvalue {i}: {lam}")
+        Draw(right_ev[i], ex_mesh, name=f"Right Eigenvector Advection-Diffusion DG {i}")
+        Draw(left_ev[i], ex_mesh, name=f"Left Eigenvector Advection-Diffusion DG {i}")
+    input("Press any key to continue...")
+
+    print("Done!")

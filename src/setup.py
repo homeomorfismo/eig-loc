@@ -2,11 +2,23 @@
 Set up different systems of PDEs
 """
 
-from ngsolve import H1, grad, dx, Mesh, Draw, BilinearForm, LinearForm, L2, specialcf
+from ngsolve import (
+    H1,
+    grad,
+    dx,
+    Mesh,
+    Draw,
+    BilinearForm,
+    LinearForm,
+    L2,
+    specialcf,
+    TaskManager,
+    SetHeapSize,
+)
 from geo2d import make_unit_square
 
 
-def setup_laplace(mesh, order: int = 1, is_complex: bool = True):
+def setup_laplace(mesh, order: int = 1, is_complex: bool = True, **kwargs):
     """
     Set up the Laplace problem
     """
@@ -25,7 +37,9 @@ def setup_laplace(mesh, order: int = 1, is_complex: bool = True):
     return a, m, f, fes
 
 
-def setup_helmholtz(mesh, coeff: float, order: int = 1, is_complex: bool = True):
+def setup_helmholtz(
+    mesh, coeff: float, order: int = 1, is_complex: bool = True, **kwargs
+):
     """
     Set up the Helmholtz problem
     """
@@ -45,7 +59,12 @@ def setup_helmholtz(mesh, coeff: float, order: int = 1, is_complex: bool = True)
 
 
 def setup_adv_diff(
-    mesh, matrix_coeff=None, potential=None, order: int = 1, is_complex: bool = True
+    mesh,
+    matrix_coeff=None,
+    potential=None,
+    order: int = 1,
+    is_complex: bool = True,
+    **kwargs,
 ):
     """
     Set up the advection-diffusion problem
@@ -74,6 +93,7 @@ def setup_adv_diff_dg(
     gamma=None,
     order: int = 1,
     is_complex: bool = True,
+    **kwargs,
 ):
     """
     Set up the advection-diffusion problem with discontinuous Galerkin
@@ -95,10 +115,15 @@ def setup_adv_diff_dg(
     a = BilinearForm(fes)
     a += matrix_coeff * grad(u) * grad(v) * dx
     a += potential * u * v * dx
-    a += -mean_grad_u * jump_v * dx(skeleton=True)
-    a += -mean_grad_v * jump_u * dx(skeleton=True)
     # TODO: Define c
     a += order**2 * gamma / h * jump_u * jump_v * dx(skeleton=True)
+    a += -mean_grad_u * jump_v * dx(skeleton=True)
+    a += -mean_grad_v * jump_u * dx(skeleton=True)
+    # TODO: These terms are in the tutorial
+    # a += order**2 * gamma / h * u * v * dx(skeleton=True)
+    a += (-n * matrix_coeff * grad(u) * v - n * matrix_coeff * grad(v) * u) * dx(
+        skeleton=True
+    )
 
     m = BilinearForm(fes)
     m += u * v * dx
@@ -114,11 +139,15 @@ def assemble(*args) -> None:
     Assemble the forms
     """
     for form in args:
-        try:
-            form.Assemble()
-        except AttributeError:
-            # TODO larger heap size
-            print(f"Unable to assemble {form}")
+        with TaskManager():
+            try:
+                form.Assemble()
+            except Exception as e:
+                print(f"Unable to assemble {form}, increasing heap size\nError: {e}")
+                SetHeapSize(int(1e9))
+                form.Assemble()
+            finally:
+                pass
 
 
 if __name__ == "__main__":

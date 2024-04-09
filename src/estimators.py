@@ -33,8 +33,47 @@ def compute_avr_ngvecs(ngvecs, name="avg") -> GridFunction:
     return gf
 
 
+def landscape_error_estimator(gf, potential=None, matrix_coeff=None, **kwargs):
+    """
+    Compute the landscape error estimator.
+    """
+    assert potential is not None, "Potential must be specified"
+    assert matrix_coeff is not None, "Matrix coefficient must be specified"
+
+    # gf = compute_avr_ngvecs(ngvecs)
+
+    h = specialcf.mesh_size
+    n = specialcf.normal(gf.space.mesh.dim)
+    xs = [x, y, z][: gf.space.mesh.dim]
+
+    grad_gf = grad(gf)
+    a_grad_gf = matrix_coeff * grad_gf
+    div_a_grad_gf = sum((a_grad_gf[i].Diff(xs[i]) for i in range(gf.space.mesh.dim)))
+    v_gf = potential * gf
+
+    integrand_1 = -div_a_grad_gf + v_gf - 1.0
+    integrand_2 = 0.5**0.5 * h**0.5 * (a_grad_gf - a_grad_gf.Other()) * n
+
+    eta_1 = Integrate(
+        InnerProduct(integrand_1, integrand_1) * dx, gf.space.mesh, element_wise=True
+    )
+    eta_2 = Integrate(
+        InnerProduct(integrand_2, integrand_2) * dx(element_boundary=True),
+        gf.space.mesh,
+        element_wise=True,
+    )
+
+    eta = sqrt(eta_1.NumPy() + eta_2.NumPy())
+    etas = {"eta_1": eta_1, "eta_2": eta_2}
+    max_etas = {
+        "max_eta_1": np.max(eta_1.NumPy()),
+        "max_eta_2": np.max(eta_2.NumPy()),
+    }
+    return eta, etas, max_etas
+
+
 def landscape_error_estimator_dg(
-    gf, order=None, potential=None, matrix_coeff=None, gamma=None
+    gf, order=None, potential=None, matrix_coeff=None, gamma=None, **kwargs
 ):
     """
     Compute the landscape error estimator.
@@ -103,8 +142,8 @@ if __name__ == "__main__":
     landscape = solve_landscape(matrix, rhs, space)
     print("Computing the landscape error estimator...\n")
     # TODO: Do I need gamma here? Not using DG
-    eta, etas, max_etas = landscape_error_estimator_dg(
-        landscape, order=5, potential=0.0, matrix_coeff=1.0, gamma=1.0
+    ee, ees, max_ee = landscape_error_estimator(
+        landscape, potential=0.0, matrix_coeff=1.0
     )
-    print(f"Error estimator: {eta}")
-    print(f"Max error estimator components: {max_etas}")
+    print(f"Error estimator: {ee}")
+    print(f"Max error estimator components: {max_ee}")
