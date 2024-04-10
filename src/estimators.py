@@ -63,7 +63,7 @@ def landscape_error_estimator(gf, potential=None, matrix_coeff=None, **kwargs):
         element_wise=True,
     )
 
-    eta = sqrt(eta_1.NumPy() + eta_2.NumPy())
+    eta = np.abs(sqrt(eta_1.NumPy() + eta_2.NumPy()))
     etas = {"eta_1": eta_1, "eta_2": eta_2}
     max_etas = {
         "max_eta_1": np.max(eta_1.NumPy()),
@@ -122,7 +122,7 @@ def landscape_error_estimator_dg(
         element_wise=True,
     )
 
-    eta = sqrt(eta_1.NumPy() + eta_2.NumPy() + eta_3.NumPy() + eta_4.NumPy())
+    eta = np.abs(sqrt(eta_1.NumPy() + eta_2.NumPy() + eta_3.NumPy() + eta_4.NumPy()))
     etas = {"eta_1": eta_1, "eta_2": eta_2, "eta_3": eta_3, "eta_4": eta_4}
     max_etas = {
         "max_eta_1": np.max(eta_1.NumPy()),

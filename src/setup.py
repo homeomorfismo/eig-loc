@@ -18,12 +18,14 @@ from ngsolve import (
 from geo2d import make_unit_square
 
 
-def setup_laplace(mesh, order: int = 1, is_complex: bool = True, **kwargs):
+def setup_laplace(mesh, order: int = 1, is_complex: bool = True):
     """
     Set up the Laplace problem
     """
     # RHS
-    fes = H1(mesh, order=order, complex=is_complex, dirichlet="boundary")
+    fes = H1(
+        mesh, order=order, complex=is_complex, dirichlet="boundary", autoupdate=True
+    )
     u, v = fes.TnT()
     a = BilinearForm(fes)
     a += grad(u) * grad(v) * dx
@@ -37,14 +39,14 @@ def setup_laplace(mesh, order: int = 1, is_complex: bool = True, **kwargs):
     return a, m, f, fes
 
 
-def setup_helmholtz(
-    mesh, coeff: float, order: int = 1, is_complex: bool = True, **kwargs
-):
+def setup_helmholtz(mesh, coeff: float, order: int = 1, is_complex: bool = True):
     """
     Set up the Helmholtz problem
     """
     # RHS
-    fes = H1(mesh, order=order, complex=is_complex, dirichlet="boundary")
+    fes = H1(
+        mesh, order=order, complex=is_complex, dirichlet="boundary", autoupdate=True
+    )
     u, v = fes.TnT()
     a = BilinearForm(fes)
     a += (grad(u) * grad(v) + coeff * u * v) * dx
@@ -59,12 +61,7 @@ def setup_helmholtz(
 
 
 def setup_adv_diff(
-    mesh,
-    matrix_coeff=None,
-    potential=None,
-    order: int = 1,
-    is_complex: bool = True,
-    **kwargs,
+    mesh, matrix_coeff=None, potential=None, order: int = 1, is_complex: bool = True
 ):
     """
     Set up the advection-diffusion problem
@@ -72,7 +69,9 @@ def setup_adv_diff(
     assert matrix_coeff is not None, "Matrix coefficient must be provided"
     assert potential is not None, "Potential must be provided"
     # RHS
-    fes = H1(mesh, order=order, complex=is_complex, dirichlet="boundary")
+    fes = H1(
+        mesh, order=order, complex=is_complex, dirichlet="boundary", autoupdate=True
+    )
     u, v = fes.TnT()
     a = BilinearForm(fes)
     a += ((matrix_coeff * grad(u)) * grad(v) + potential * u * v) * dx
@@ -93,7 +92,6 @@ def setup_adv_diff_dg(
     gamma=None,
     order: int = 1,
     is_complex: bool = True,
-    **kwargs,
 ):
     """
     Set up the advection-diffusion problem with discontinuous Galerkin
