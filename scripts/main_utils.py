@@ -211,7 +211,7 @@ def get_default_values_feast(**kwargs):
 
 # Error estimator
 def error_estimator_landscape(
-    gf, matrix_coeff=None, vector_coeff=None, scalar_coeff=None
+    gf, matrix_coeff=None, vector_coeff=None, scalar_coeff=None, source_coeff=None
 ):
     """
     Compute the landscape error estimator.
@@ -228,7 +228,10 @@ def error_estimator_landscape(
     vec_grad_gf = vector_coeff * grad_gf
     div_grad_gf = sum((mat_grad_gf[i].Diff(xs[i]) for i in range(gf.space.mesh.dim)))
 
-    integrand_1 = -div_grad_gf + vec_grad_gf + scalar_coeff * gf - 1.0
+    if source_coeff is not None:
+        integrand_1 = -div_grad_gf + vec_grad_gf + scalar_coeff * gf - source_coeff
+    else:
+        integrand_1 = -div_grad_gf + vec_grad_gf + scalar_coeff * gf - 1.0
     integrand_2 = 0.5**0.5 * h**0.5 * (mat_grad_gf - mat_grad_gf.Other()) * n
 
     eta_1 = Integrate(
@@ -297,6 +300,7 @@ def mark(mesh, eta, theta=0.5):
         mesh.SetRefinementFlag(element, eta[element.nr] > theta * np.max(eta))
 
 
+# File I/O
 def to_file(info, filename):
     """
     Use pandas to save the info to a file.
@@ -312,5 +316,16 @@ def from_file(filename):
     return pd.read_csv(filename)
 
 
+def append_to_dict(dictionary, **kwargs):
+    """
+    Append value to the list of values in the dictionary
+    """
+    for key, value in kwargs.items():
+        if key in dictionary:
+            dictionary[key].append(value)
+        else:
+            dictionary[key] = [value]
+
+
 if __name__ == "__main__":
-    pass
+    keys = ["ndofs", "rel_error", "eta_max", "eta_avg", "eta_l2", "error"]
