@@ -21,13 +21,14 @@ from main_utils import (
     to_file,
 )
 
-ORDER = 3
-MAXITER = 30
+ORDER = 1
+MAXITER = 50
+MAXNDOFS = 2_000_000
 THETA = 0.9
 
 CENTER = 5 * np.pi**2 + 325
-RADIUS = 1.0
-NPTS = 4
+RADIUS = 10.0
+NPTS = 8
 NSPAN = 2
 
 MAXH = 0.1
@@ -44,7 +45,8 @@ def test_ard():
     err_dict = {}
     prev_avg_eig = CENTER
     iteration = 0
-    while iteration < MAXITER:
+    ndofs = 0
+    while iteration < MAXITER and ndofs < MAXNDOFS:
         iteration += 1
         a, m, f, fes = get_forms(
             mesh,
@@ -54,6 +56,7 @@ def test_ard():
             order=ORDER,
             is_complex=True,
         )
+        ndofs = fes.ndof
         u = solve(a, f, fes)
         _, _, evals = solve_eigenvalue(a, m, fes, center=CENTER)
         eta, _, _ = error_estimator_landscape(
@@ -103,7 +106,8 @@ def test_ard_mod():
     err_dict = {}
     prev_avg_eig = CENTER
     iteration = 0
-    while iteration < MAXITER:
+    ndofs = 0
+    while iteration < MAXITER and ndofs < MAXNDOFS:
         iteration += 1
         a, m, f, fes = get_forms(
             mesh,
@@ -113,6 +117,7 @@ def test_ard_mod():
             order=ORDER,
             is_complex=True,
         )
+        ndofs = fes.ndof
         u = solve(a, f, fes)
         _, _, evals = solve_eigenvalue(a, m, fes, center=CENTER)
         eta, _, _ = error_estimator_landscape(
@@ -162,7 +167,8 @@ def test_ard_eig():
     err_dict = {}
     prev_avg_eig = CENTER
     iteration = 0
-    while iteration < MAXITER:
+    ndofs = 0
+    while iteration < MAXITER and ndofs < MAXNDOFS:
         iteration += 1
         a, m, _, fes = get_forms(
             mesh,
@@ -172,6 +178,7 @@ def test_ard_eig():
             order=ORDER,
             is_complex=True,
         )
+        ndofs = fes.ndof
         right, evals = solve_eigenvalue_arnoldi(a, m, fes, center=CENTER)
         etas = []
         for k in range(len(right.vecs)):
@@ -235,7 +242,8 @@ def test_ard_grad():
     err_dict = {}
     prev_avg_eig = CENTER
     iteration = 0
-    while iteration < MAXITER:
+    ndofs = 0
+    while iteration < MAXITER and ndofs < MAXNDOFS:
         iteration += 1
         a, m, f, fes = get_forms(
             mesh,
@@ -245,6 +253,7 @@ def test_ard_grad():
             order=ORDER,
             is_complex=True,
         )
+        ndofs = fes.ndof
         u = solve(a, f, fes)
         _, _, evals = solve_eigenvalue(a, m, fes, center=CENTER)
         eta, _, _ = error_estimator_grad_landscape(
