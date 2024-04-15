@@ -291,6 +291,52 @@ def error_estimator_eigenfunction(
     return eta, etas, max_etas
 
 
+def error_estimator_grad_landscape(
+    gf, matrix_coeff=None, vector_coeff=None, scalar_coeff=None
+):
+    """
+    Compute the gradient of the landscape error estimator.
+    """
+    assert matrix_coeff is not None, "Matrix coefficient must be provided"
+    assert vector_coeff is not None, "Vector coefficient must be provided"
+    assert scalar_coeff is not None, "Scalar coefficient must be provided"
+    h = specialcf.mesh_size
+    n = specialcf.normal(gf.space.mesh.dim)
+    if gf.space.mesh.dim == 2:
+        x_vec = CoefficientFunction((x / 2, y / 2))
+    else:
+        x_vec = CoefficientFunction((x / 3, y / 3, z / 3))
+
+    grad_gf = grad(gf)
+    mat_grad_gf = matrix_coeff * grad_gf
+    vec_grad_gf = vector_coeff * grad_gf
+
+    integrand_1 = mat_grad_gf + x_vec
+    integrand_2 = 0.5**0.5 * h**0.5 * (x_vec - x_vec.Other()) * n
+    integrand_3 = h * (vec_grad_gf + scalar_coeff * gf)
+
+    eta_1 = Integrate(
+        InnerProduct(integrand_1, integrand_1) * dx, gf.space.mesh, element_wise=True
+    )
+    eta_2 = Integrate(
+        InnerProduct(integrand_2, integrand_2) * dx(element_boundary=True),
+        gf.space.mesh,
+        element_wise=True,
+    )
+    eta_3 = Integrate(
+        InnerProduct(integrand_3, integrand_3) * dx, gf.space.mesh, element_wise=True
+    )
+
+    eta = np.sqrt(eta_1.NumPy().real + eta_2.NumPy().real + eta_3.NumPy().real)
+    etas = {"eta_1": eta_1, "eta_2": eta_2, "eta_3": eta_3}
+    max_etas = {
+        "max_eta_1": np.max(eta_1.NumPy()),
+        "max_eta_2": np.max(eta_2.NumPy()),
+        "max_eta_3": np.max(eta_3.NumPy()),
+    }
+    return eta, etas, max_etas
+
+
 # Marking
 def mark(mesh, eta, theta=0.5):
     """
