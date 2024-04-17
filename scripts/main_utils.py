@@ -232,13 +232,15 @@ def error_estimator_landscape(
         integrand_1 = -div_grad_gf + vec_grad_gf + scalar_coeff * gf - source_coeff
     else:
         integrand_1 = -div_grad_gf + vec_grad_gf + scalar_coeff * gf - 1.0
-    integrand_2 = 0.5**0.5 * h**0.5 * (mat_grad_gf - mat_grad_gf.Other()) * n
+    integrand_2 = (mat_grad_gf - mat_grad_gf.Other()) * n
 
     eta_1 = Integrate(
-        InnerProduct(integrand_1, integrand_1) * dx, gf.space.mesh, element_wise=True
+        h**2 * InnerProduct(integrand_1, integrand_1) * dx,
+        gf.space.mesh,
+        element_wise=True,
     )
     eta_2 = Integrate(
-        InnerProduct(integrand_2, integrand_2) * dx(element_boundary=True),
+        0.5 * h * InnerProduct(integrand_2, integrand_2) * dx(element_boundary=True),
         gf.space.mesh,
         element_wise=True,
     )
@@ -271,13 +273,15 @@ def error_estimator_eigenfunction(
     div_grad_gf = sum((mat_grad_gf[i].Diff(xs[i]) for i in range(gf.space.mesh.dim)))
 
     integrand_1 = -div_grad_gf + vec_grad_gf + scalar_coeff * gf - ev * gf
-    integrand_2 = 0.5**0.5 * h**0.5 * (mat_grad_gf - mat_grad_gf.Other()) * n
+    integrand_2 = (mat_grad_gf - mat_grad_gf.Other()) * n
 
     eta_1 = Integrate(
-        InnerProduct(integrand_1, integrand_1) * dx, gf.space.mesh, element_wise=True
+        h**2 * InnerProduct(integrand_1, integrand_1) * dx,
+        gf.space.mesh,
+        element_wise=True,
     )
     eta_2 = Integrate(
-        InnerProduct(integrand_2, integrand_2) * dx(element_boundary=True),
+        0.5 * h * InnerProduct(integrand_2, integrand_2) * dx(element_boundary=True),
         gf.space.mesh,
         element_wise=True,
     )
@@ -374,4 +378,4 @@ def append_to_dict(dictionary, **kwargs):
 
 
 if __name__ == "__main__":
-    keys = ["ndofs", "rel_error", "eta_max", "eta_avg", "eta_l2", "error"]
+    pass

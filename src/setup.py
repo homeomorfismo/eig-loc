@@ -6,6 +6,7 @@ from ngsolve import (
     H1,
     grad,
     dx,
+    ds,
     Mesh,
     Draw,
     BilinearForm,
@@ -29,7 +30,7 @@ def setup_laplace(mesh, order: int = 1, is_complex: bool = True):
     u, v = fes.TnT()
     a = BilinearForm(fes)
     a += grad(u) * grad(v) * dx
-    # LHS (for eigenvalue problem)
+    # LHS (for eigenvalue problem) m = BilinearForm(fes)
     m = BilinearForm(fes)
     m += u * v * dx
     # Linear form (for the landscape function)
@@ -118,10 +119,9 @@ def setup_adv_diff_dg(
     a += -mean_grad_u * jump_v * dx(skeleton=True)
     a += -mean_grad_v * jump_u * dx(skeleton=True)
     # TODO: These terms are in the tutorial
-    # a += order**2 * gamma / h * u * v * dx(skeleton=True)
-    a += (-n * matrix_coeff * grad(u) * v - n * matrix_coeff * grad(v) * u) * dx(
-        skeleton=True
-    )
+    a += order**2 * gamma / h * u * v * ds(skeleton=True)
+    a += -n * matrix_coeff * grad(u) * v * ds(skeleton=True)
+    a += -n * matrix_coeff * grad(v) * u * ds(skeleton=True)
 
     m = BilinearForm(fes)
     m += u * v * dx
