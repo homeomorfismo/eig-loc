@@ -98,7 +98,7 @@ def get_forms(
     )
     u, v = fes.TnT()
     a = BilinearForm(fes)
-    a += matrix_coeff * grad(u) * grad(v) * dx
+    a += (matrix_coeff * grad(u)) * grad(v) * dx
     a += vector_coeff * grad(u) * v * dx
     a += scalar_coeff * u * v * dx
     m = BilinearForm(fes)
