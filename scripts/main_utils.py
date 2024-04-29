@@ -124,10 +124,19 @@ def get_exp_potential(tuple_values):
 # Solvers
 def solve(matrix, rhs, space):
     """
-    Solve the Laplace equation
+    Solve the equation
     """
     sol = GridFunction(space, name="Laplace solution", autoupdate=True)
     sol.vec.data = matrix.mat.Inverse(space.FreeDofs()) * rhs.vec
+    return sol
+
+
+def solve_transpose(matrix, rhs, space):
+    """
+    Solve the transpose equation
+    """
+    sol = GridFunction(space, name="Laplace solution", autoupdate=True)
+    sol.vec.data = matrix.mat.Inverse(space.FreeDofs()).H * rhs.vec
     return sol
 
 

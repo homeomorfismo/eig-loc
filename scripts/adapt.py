@@ -7,6 +7,7 @@ from ngsolve import (
     CoefficientFunction,
     GridFunction,
     Mesh,
+    Draw,
 )
 from main_utils import (
     append_to_dict,
@@ -15,14 +16,15 @@ from main_utils import (
     make_unit_square,
     mark,
     solve,
+    solve_transpose,
     solve_eigenvalue,
     solve_eigenvalue_arnoldi,
     to_file,
 )
 
-ORDER = 1
-MAXITER = 50
-MAXNDOFS = 2_000_000
+ORDER = 2
+MAXITER = 25
+MAXNDOFS = 300_000
 THETA = 0.9
 
 CENTER = 5 * np.pi**2 + 325
@@ -42,7 +44,7 @@ def test_ard(
     **kwargs,
 ):
     """
-    Test the adaptive routine for the original problem
+    Solves the original problem using the right-hand side estimator.
     """
     assert parameters is not None, "Parameters are required"
     assert matrix_coeff is not None, "Matrix coefficient is required"
@@ -129,7 +131,7 @@ def test_ard_dual(
     **kwargs,
 ):
     """
-    Test the adaptive routine for the original problem
+    Solve the primal and dual problems and use both estimators.
     """
     assert parameters is not None, "Parameters are required"
     assert matrix_coeff is not None, "Matrix coefficient is required"
@@ -166,15 +168,17 @@ def test_ard_dual(
             scalar_coeff=scalar_coeff,
             source_coeff=source_coeff,
         )
+        v = solve_transpose(a, f, fes)
         eta_l, _, _ = error_estimator_landscape(
-            u,
+            v,
             matrix_coeff=matrix_coeff,
             vector_coeff=-1.0 * vector_coeff,
             scalar_coeff=scalar_coeff,
             source_coeff=source_coeff,
         )
         temp_stack = np.stack([eta_r, eta_l])
-        eta = np.mean(temp_stack, axis=0)
+        # eta = np.mean(temp_stack, axis=0)
+        eta = np.maximum.reduce(temp_stack, axis=0)
         append_to_dict(
             eta_dict,
             ndofs=fes.ndof,
@@ -205,12 +209,13 @@ def test_ard_dual(
         # Refine
         mesh.Refine()
 
-    to_file(eta_dict, "etas_original_problem.csv")
-    to_file(eig_dict, "eval_original_problem.csv")
-    to_file(err_dict, "errs_original_problem.csv")
+    to_file(eta_dict, "etas_dual_problem.csv")
+    to_file(eig_dict, "eval_dual_problem.csv")
+    to_file(err_dict, "errs_dual_problem.csv")
 
     solution = {
         "u": u,
+        "v": v,
         "mesh": mesh,
     }
     return eta_dict, eig_dict, err_dict, solution
@@ -224,7 +229,8 @@ def test_ard_eig_feast(
     **kwargs,
 ):
     """
-    Test the adaptive routine for the eigenvalue problem
+    Solve the primal problem and use the right eiegnvalue estimator.
+    The implementation uses the FEAST eigensolver.
     """
     assert parameters is not None, "Parameters are required"
     assert matrix_coeff is not None, "Matrix coefficient is required"
@@ -327,7 +333,8 @@ def test_ard_eig_feast_dual(
     **kwargs,
 ):
     """
-    Test the adaptive routine for the eigenvalue problem
+    Solve the primal and dual problems and use both estimators.
+    The implementation uses the FEAST eigensolver.
     """
     assert parameters is not None, "Parameters are required"
     assert matrix_coeff is not None, "Matrix coefficient is required"
@@ -439,7 +446,8 @@ def test_ard_eig_arnoldi(
     # **kwargs,
 ):
     """
-    Test the adaptive routine for the eigenvalue problem
+    Solve the primal problem and use the right eiegnvalue estimator.
+    The implementation uses the Arnoldi eigensolver.
     """
     assert parameters is not None, "Parameters are required"
     assert matrix_coeff is not None, "Matrix coefficient is required"
@@ -539,7 +547,25 @@ def test_ard_eig_arnoldi(
 
 
 if __name__ == "__main__":
-    eta_dict, eig_dict, err_dict, sol = test_ard(
+    # eta_dict, eig_dict, err_dict, sol = test_ard(
+    #     parameters={
+    #         "order": ORDER,
+    #         "maxiter": MAXITER,
+    #         "maxndofs": MAXNDOFS,
+    #         "center": CENTER,
+    #         "radius": RADIUS,
+    #         "npts": NPTS,
+    #         "nspan": NSPAN,
+    #         "maxh": MAXH,
+    #         "theta": THETA,
+    #     },
+    #     matrix_coeff=CoefficientFunction((1.0, 0.0, 0.0, 1.0), dims=(2, 2)),
+    #     vector_coeff=CoefficientFunction((0.0, 0.0)),
+    #     scalar_coeff=CoefficientFunction(0.0),
+    #     source_coeff=None,
+    # )
+
+    eta_dict, eig_dict, err_dict, sol = test_ard_dual(
         parameters={
             "order": ORDER,
             "maxiter": MAXITER,
@@ -549,42 +575,49 @@ if __name__ == "__main__":
             "npts": NPTS,
             "nspan": NSPAN,
             "maxh": MAXH,
+            "theta": THETA,
         },
         matrix_coeff=CoefficientFunction((1.0, 0.0, 0.0, 1.0), dims=(2, 2)),
-        vector_coeff=CoefficientFunction((0.0, 0.0)),
+        vector_coeff=CoefficientFunction((20.0, 30.0)),
         scalar_coeff=CoefficientFunction(0.0),
         source_coeff=None,
     )
 
-    eta_dict, eig_dict, err_dict, sol = test_ard_eig_feast(
-        parameters={
-            "order": ORDER,
-            "maxiter": MAXITER,
-            "maxndofs": MAXNDOFS,
-            "center": CENTER,
-            "radius": RADIUS,
-            "npts": NPTS,
-            "nspan": NSPAN,
-            "maxh": MAXH,
-        },
-        matrix_coeff=CoefficientFunction((1.0, 0.0, 0.0, 1.0), dims=(2, 2)),
-        vector_coeff=CoefficientFunction((0.0, 0.0)),
-        scalar_coeff=CoefficientFunction(0.0),
-    )
+    Draw(sol["u"], mesh=sol["mesh"], name="Solution")
+    Draw(sol["v"], mesh=sol["mesh"], name="Dual Solution")
+    input("Press any key to continue...")
 
-    eta_dict, eig_dict, err_dict, sol = test_ard_eig_arnoldi(
-        parameters={
-            "order": ORDER,
-            "maxiter": MAXITER,
-            "maxndofs": MAXNDOFS,
-            "center": CENTER,
-            "radius": RADIUS,
-            "npts": NPTS,
-            "nspan": NSPAN,
-            "maxh": MAXH,
-        },
-        matrix_coeff=CoefficientFunction((1.0, 0.0, 0.0, 1.0), dims=(2, 2)),
-        vector_coeff=CoefficientFunction((0.0, 0.0)),
-        scalar_coeff=CoefficientFunction(0.0),
-    )
+    # eta_dict, eig_dict, err_dict, sol = test_ard_eig_feast(
+    #     parameters={
+    #         "order": ORDER,
+    #         "maxiter": MAXITER,
+    #         "maxndofs": MAXNDOFS,
+    #         "center": CENTER,
+    #         "radius": RADIUS,
+    #         "npts": NPTS,
+    #         "nspan": NSPAN,
+    #         "maxh": MAXH,
+    #         "theta": THETA,
+    #     },
+    #     matrix_coeff=CoefficientFunction((1.0, 0.0, 0.0, 1.0), dims=(2, 2)),
+    #     vector_coeff=CoefficientFunction((0.0, 0.0)),
+    #     scalar_coeff=CoefficientFunction(0.0),
+    # )
+
+    # eta_dict, eig_dict, err_dict, sol = test_ard_eig_arnoldi(
+    #     parameters={
+    #         "order": ORDER,
+    #         "maxiter": MAXITER,
+    #         "maxndofs": MAXNDOFS,
+    #         "center": CENTER,
+    #         "radius": RADIUS,
+    #         "npts": NPTS,
+    #         "nspan": NSPAN,
+    #         "maxh": MAXH,
+    #         "theta": THETA,
+    #     },
+    #     matrix_coeff=CoefficientFunction((1.0, 0.0, 0.0, 1.0), dims=(2, 2)),
+    #     vector_coeff=CoefficientFunction((0.0, 0.0)),
+    #     scalar_coeff=CoefficientFunction(0.0),
+    # )
     print("Done!")
