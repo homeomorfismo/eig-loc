@@ -1,0 +1,227 @@
+\section{Setting}
+
+Consider the source problem
+\begin{subequations}
+\begin{align}
+    \label{eq:source}
+    - \Delta u  & = 1, \text{ in } \Omega, \\
+    u & = 0, \text{ on } \partial \Omega,
+\end{align}
+\end{subequations}
+and the eigenvalue problem
+\begin{subequations}
+\begin{align}
+    \label{eq:eigenvalue}
+    - \Delta \psi & = \lambda \psi, \text{ in } \Omega, \\
+    \psi & = 0, \text{ on } \partial \Omega.
+\end{align}
+\end{subequations}
+
+We write the weak formulations of the above problems.
+Define the bilinear forms
+\begin{subequations}
+\begin{align}
+    a: & \mathring{H}^1(\Omega) \times \mathring{H}^1(\Omega) \to \mathbb{R}, &
+    a(u, v) & = \int_{\Omega} \nabla u \cdot \nabla v \, \mathrm{d}x, \\
+    b: & \mathring{H}^1(\Omega) \times \mathring{H}^1(\Omega) \to \mathbb{R}, &
+    b(u, v) & = \int_{\Omega} u v \, \mathrm{d}x,
+\end{align}
+and the linear form
+\begin{align}
+    \ell: & \mathring{H}^1(\Omega) \to \mathbb{R}, &
+    \ell (v) & = \int_{\Omega} v \, \mathrm{d}x.
+\end{align}
+\end{subequations}
+
+Then, the weak formulation of the source problem is to find \(u \in \mathring{H}^1(\Omega)\) such that
+\begin{equation}
+    \label{eq:source_weak}
+    a(u, v) = \ell(v), \quad \forall v \in \mathring{H}^1(\Omega),
+\end{equation}
+for all test functions \(v \in \mathring{H}^1(\Omega)\).
+Similarly, the weak formulation of the eigenvalue problem is to find \((\lambda, \psi) \in \mathbb{C} \times \mathring{H}^1(\Omega)\) such that
+\begin{equation}
+    \label{eq:eigenvalue_weak}
+    a(\psi, v) = \lambda b(\psi, v), \quad \forall v \in \mathring{H}^1(\Omega),
+\end{equation}
+for all test functions \(v \in \mathring{H}^1(\Omega)\).
+
+We now consider the finite element discretization of the above problems.
+Let \(\Omega_h\) be an \(h\)-parametrized family of triangulations of \(\Omega\),
+and let \(V_h\) be an \(\mathring{H}^1\)-conforming finite element space on \(\Omega_h\).
+Consider the restriction of the bilinear forms \(a\) and \(b\) and the linear form \(\ell\) to \(V_h\);
+we denote these restrictions by \(a_h\), \(b_h\), and \(\ell_h\), respectively.
+Then, the finite element discretization of the source problem is to find \(u_h \in V_h\) such that
+\begin{equation}
+    \label{eq:source_fem}
+    a_h(u_h, v_h) = \ell_h(v_h), \quad \forall v_h \in V_h,
+\end{equation}
+for all test functions \(v \in V_h\).
+Similarly, the finite element discretization of the eigenvalue problem is to find \((\lambda_h, \psi_h) \in \mathbb{C} \times V_h\) such that
+\begin{equation}
+    \label{eq:eigenvalue_fem}
+    a_h(\psi_h, v_h) = \lambda_h b_h(\psi_h, v_h), \quad \forall v_h \in V_h,
+\end{equation}
+for all test functions \(v \in V_h\).
+
+From the standard spectral theory of elliptic operators, we know that the eigenvalues of a self-adjoint elliptic operator are real and bounded below. [REFERENCE NEEDED]
+Moreover, the eigenfunctions corresponding to distinct eigenvalues are orthogonal.
+We pick these vectors to be orthonormal with respect to the inner product in \(L^2(\Omega)\), i.e.,
+\begin{equation}
+    \label{eq:orthonormality}
+    (\psi_i, \psi_j) = \int_{\Omega} \psi_i \psi_j \, \mathrm{d}x = \delta_{ij}.
+\end{equation}
+Similarly, we pick the discretized eigenfunctions \(\{\psi_{h, i}\}_{i=0}^{N(h)}\) to be orthonormal with respect to the inner product in \(L^2(\Omega)\), i.e.,
+\begin{equation}
+    \label{eq:orthonormality_fem}
+    (\psi_{h, i}, \psi_{h, j}) = \int_{\Omega} \psi_{h, i} \psi_{h, j} \, \mathrm{d}x = \delta_{ij}.
+\end{equation}
+
+\section{Error Estimators}
+
+We will define a local residual-based error estimator for the source problem. [REFERENCE NEEDED]
+Given \(K \in \Omega_h\), let \(u_K\) be the solution of the source problem restricted to \(K\).
+Denote by \(\llbracket u \rrbracket_F\) the jump of \(u\) across the face \(F\).
+Then, the local residual-based error estimator is given by
+\begin{equation}
+    \label{eq:source_error_estimator}
+    \eta_K^2(u) =
+    \eta_K^2 = h_K^2 \left\lVert -\Delta u_K - 1 \right\rVert_{L^2(K)}^2
+         + \frac{h_K}{2} \left\lVert \llbracket \partial_\nu u_K \rrbracket_{\partial K} \right\rVert_{L^2(\partial K)}^2,
+\end{equation}
+where \(h_K\) is the diameter of \(K\).
+The global error estimator is then given by
+\begin{equation}
+    \label{eq:source_global_error_estimator}
+    % \eta^2 = \sum_{K \in \Omega_h} \eta_K^2.
+    \eta = \max_{K \in \Omega_h} \eta_K.
+\end{equation}
+Another possible global error estimator is given by
+\begin{equation}
+    \label{eq:source_global_error_estimator_alt}
+    \eta^2_{\ell^2}(u) =
+    \sum_{K \in \Omega_h} \eta_K^2.
+\end{equation}
+
+For verification purposes, we also define a local residual-based error estimator for the eigenvalue problem.
+Given \(K \in \Omega_h\), let \(\psi_K\) be the solution of the eigenvalue problem restricted to \(K\).
+Then, the local residual-based error estimator is given by
+\begin{equation}
+    \label{eq:eigenvalue_error_estimator}
+    \eta_K^2(\psi, \lambda) =
+    h_K^2 \left\lVert -\Delta \psi_K - \lambda \psi_K \right\rVert_{L^2(K)}^2
+        + \frac{h_K}{2} \left\lVert \llbracket \partial_\nu \psi_K \rrbracket_{\partial K} \right\rVert_{L^2(\partial K)}^2.
+\end{equation}
+
+\section{\(h\)-Adaptive Algorithm}
+
+We will now describe the \(h\)-adaptive algorithm for the source problem.
+A high-level description of the algorithm consists of a loop over the following steps:
+\textbf{SOLVE}, \textbf{ESTIMATE}, \textbf{MARK}, and \textbf{REFINE}.
+
+Consider the triangulation \(\Omega_{(n)}\) at iteration \(n\).
+We say that an element \(K \in \Omega_{(n)}\) is marked for refinement if \(\eta_K > \theta \eta\), where \(\theta\) is a user-defined threshold, and \(\eta\) is the global error estimator defined in \eqref{eq:source_global_error_estimator}.
+We define a new triangulation \(\Omega_{(n+1)}\) at iteration \(n+1\) by bisecting all elements \(K \in \Omega_{(n)}\) that are marked for refinement.
+
+\section{Numerical Experiments}
+
+We consider an L-shaped domain [REFERENCE NEEDED].
+We set the threshold \(\theta = 0.75\) and an initial mesh size of \(h \approx 0.1\).
+
+[PLOTS NEEDED]
+[TABLES NEEDED]
+[SEQUENCE OF MESHES NEEDED]
+
+\section{``Universality'' of the landscape-function-driven adaptive algorithm}
+
+We will now describe the ``universality'' of the landscape-function-driven adaptive algorithm.
+Assume we have convergence of the approximated landscape functions to the true landscape function, i.e.,
+\begin{equation}
+    \label{eq:convergence}
+    \lVert u - u_h \rVert_{V} \to 0 \text{ as } h \to 0.
+\end{equation}
+We want to show convergence of the eigenvalue approximations to the true eigenvalues, i.e.,
+\begin{equation}
+    \label{eq:eigenvalue_convergence}
+    \lvert \lambda - \lambda_h \rvert \to 0 \text{ as } h \to 0.
+\end{equation}
+and convergence of the eigenfunction approximations to the true eigenfunctions, i.e.,
+\begin{equation}
+    \label{eq:eigenfunction_convergence}
+    \lVert \psi - \psi_h \rVert_{V} \to 0 \text{ as } h \to 0.
+\end{equation}
+
+% Due to the stability of the finite element method, we have quasi-optimality, i.e.,
+% \begin{equation}
+%     \label{eq:quasi_optimality}
+%     \inf_{v_h \in V_h} \lVert u - v_h \rVert_{V} \leq \lVert u - u_h \rVert_{V} \lesssim \inf_{v_h \in V_h} \lVert u - v_h \rVert_{V}.
+% \end{equation}
+
+\subsection{Mass concentration}
+
+Assume that we have \(L^2\)-convergence of the landscape functions, i.e., \(\lVert u - u_h \rVert_{L^2} \to 0\) as \(h \to 0\).
+Using Besel-Parseval, we have that all the Fourier coefficients of the difference \(u - u_h\) go to zero.
+We describe these coefficients:
+\begin{align*}
+    \label{eq:fourier}
+    (u - u_h, \psi_n) & = (u, \psi_n) - (u_h, \psi_n)\\
+    & = \left(1, \frac{\psi_n}{\lambda_n}\right) -
+    \left(\sum_{i=1}^{N(h)} (u_h, \psi_{h, i}) \psi_{h, i}, \psi_n\right) \\
+    & = \left(1, \frac{\psi_n}{\lambda_n}\right) - \sum_{i=1}^{N(h)}  \left(1, \frac{\psi_{h, i}}{\lambda_{h, i}} \right) (\psi_{h, i}, \psi_n) \\
+    & = \left(1, \frac{\psi_n}{\lambda_n}\right) - \left(1, \sum_{i=1}^{N(h)} \frac{\psi_{h, i}}{\lambda_{h, i}} (\psi_{h, i}, \psi_n)\right)
+\end{align*}
+We have the following bound:
+\begin{equation}
+    \label{eq:fourier_bound}
+    \left\lvert
+    \left(1, \frac{\psi_n}{\lambda_n}\right) - \left(1, \sum_{i=1}^{N(h)} \frac{\psi_{h, i}}{\lambda_{h, i}} (\psi_{h, i}, \psi_n)\right)
+    \right\rvert
+\leq \left\lVert u - u_h \right\rVert_{L^2},
+\end{equation}
+for all \(n \in \mathbb{N}\).
+This can be interpreted as a concentration of the mass of the eigenfunctions upon convergence of the discrete landscape function to the true landscape function.
+
+\subsection{Weak convergence and best approximation techniques}
+
+The later suggests some sequence of functions that may have better convergence properties.
+
+Let \(w \in L^2(\Omega)\) be a test function.
+Define \(\hat \psi_{h, n} := \sum_{i=1}^{N(h)} \frac{(\psi_n, \psi_{h, i})}{\lambda_{h, i}} \psi_{h, i}\), for all \(n \in \mathbb{N}\), and \(h > 0\).
+Denote the true (accumulated) eigenspace by \( E_n := \text{span}\{\psi_1, \ldots, \psi_n\}\) for all \(n \in \mathbb{N}\).
+Analogously, define its discete counterpart by \(E_{h, n} := \text{span}\{\psi_{h, 1}, \ldots, \psi_{h, n}\}\) for all \(n = 1, \dots, N(h)\) and \(h > 0\).
+Define the \(L^2\)-projection operator \(P_n: L^2(\Omega) \to E_n\) and its discrete counterpart \(P_{h, n}: L^2(\Omega) \to E_{h, n}\).
+Notice that \(\hat \psi_{h, n} \in E_{h, N(h)}\).
+
+\begin{align*}
+    % \label{eq:projection}
+    \left\lVert \frac{\psi_n}{\lambda_n} - P_{h, N(h)}\left( \frac{\psi_n}{\lambda_n} \right) \right\rVert_{L^2}^2
+    & \leq \left\lVert \frac{\psi_n}{\lambda_n} - \hat \psi_{h, n} \right\rVert_{L^2}^2 \\
+    & = \left\lVert \sum_{i=1}^{N(h)} \left( \frac{(\psi_n, \psi_{h, i})}{\lambda_n} - \frac{(\psi_n, \psi_{h, i})}{\lambda_{h, i}} \right) \psi_{h, i} \right\rVert_{L^2}^2 \\
+    & = \sum_{i=1}^{N(h)} \lvert (\psi_n, \psi_{h, i}) \rvert^2 \left\lvert \frac{1}{\lambda_n} - \frac{1}{\lambda_{h, i}} \right\rvert^2 \\
+    & \leq \max_{i=1, \dots, N(h)} \left\lvert \frac{1}{\lambda_n} - \frac{1}{\lambda_{h, i}} \right\rvert^2.
+\end{align*}
+
+% \begin{align*}
+%     % \label{eq:projection}
+%     \left\lVert \frac{\psi_n}{\lambda_n} - \hat \psi_{h, n} \right\rVert_{L^2}^2
+%     & = \left\lVert \sum_{i=1}^{N(h)} \left( \frac{(\psi_n, \psi_{h, i})}{\lambda_n} - \frac{(\psi_n, \psi_{h, i})}{\lambda_{h, i}} \right) \psi_{h, i} \right\rVert_{L^2}^2 \\
+%     & = \sum_{i=1}^{N(h)} \lvert (\psi_n, \psi_{h, i}) \rvert^2 \left\lvert \frac{1}{\lambda_n} - \frac{1}{\lambda_{h, i}} \right\rvert^2 \\
+%     & \leq \max_{i=1, \dots, N(h)} \left\lvert \frac{1}{\lambda_n} - \frac{1}{\lambda_{h, i}} \right\rvert^2.
+% \end{align*}
+
+% Rewriting the above expression, we have
+% \begin{equation}
+%     \label{eq:projection-bound}
+%     \left\lVert \psi_n - P_{h, n}(\psi_n) \right\rVert_{L^2}
+%     \leq \max_{i=1, \dots, N(h)} \left\lvert 1 - \frac{\lambda_n}{\lambda_{h, i}} \right\rvert.
+% \end{equation}
+
+We can repeat a similar argument, where \(N = N(h)\), to show that
+\begin{align*}
+    % \label{eq:projection}
+    \left\lVert \frac{\psi_N}{\lambda_N} - \frac{(\psi_N, \psi_{h, N})}{\lambda_{h, N}} \psi_{h, N} \right\rVert_{L^2}^2
+    & = \left\lVert P_{h, N-1}\left( \frac{\psi_N}{\lambda_N} \right)\right\rVert_{L^2}^2
+    +  \left\lvert (\psi_N, \psi_{h, N}) \right\rvert^2 \left\lvert \frac{1}{\lambda_N} - \frac{1}{\lambda_{h, N}} \right\rvert^2 \\
+    & \leq \left\lVert P_{h, N-1}\left( \frac{\psi_N}{\lambda_N} \right)\right\rVert_{L^2}^2
+    +  \left\lvert \frac{1}{\lambda_N} - \frac{1}{\lambda_{h, N}} \right\rvert^2.
+\end{align*}

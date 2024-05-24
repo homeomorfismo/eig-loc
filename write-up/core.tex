@@ -1,0 +1,70 @@
+% Main settings
+\input{settings}
+
+% Beamer
+\ifdefined\BEAMER
+    \ifdefined\OPTIONS
+        \documentclass[\OPTIONS]{\BEAMER}
+    \else
+        \documentclass{\BEAMER}
+    \fi
+    \usetheme{\THEME}
+    \usecolortheme{\COLORTHEME}
+    \author[\SHORTAUTHOR]{\AUTHOR}
+    \institute{\INSTITUTION}
+\fi
+
+% Article
+\ifdefined\ARTICLE
+    \ifdefined\OPTIONS
+        \documentclass[\OPTIONS]{\ARTICLE}
+    \else
+        \documentclass{\ARTICLE}
+    \fi
+    \author{\AUTHOR}
+\fi
+
+% AMS Article
+\ifdefined\AMSART
+    \ifdefined\OPTIONS
+        \documentclass[\OPTIONS]{\AMSART}
+    \else
+        \documentclass{\AMSART}
+    \fi
+    \author{\AUTHOR}
+    \address{\INSTITUTION}
+    \ifdefined\THANKS
+        \thanks{\THANKS}
+    \fi
+\fi
+
+\input{packages}
+\input{preamble}
+
+\ifdefined\LOGO
+    \logo{\includegraphics[width=0.1\textwidth]{\LOGO}}
+\fi
+
+\ifdefined\COURSENAME
+    \title{\large\COURSENUMBER:\\\COURSENAME\\\TITLE}
+    \date{\SUBMISSIONDATE}
+\else
+    \title[\SHORTTITLE]{\TITLE}
+    \date{\today}
+\fi
+
+% Document
+\begin{document}
+
+% ARTICLE/AMSART
+%% Title page
+\maketitle
+%% Abstract
+% \begin{abstract}\end{abstract}
+
+\include{ev}
+
+% BIBTEX
+% \bibliographystyle{abbrv}
+% \bibliography{refs}
+\end{document}

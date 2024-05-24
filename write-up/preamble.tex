@@ -1,0 +1,99 @@
+%%%%%%%%%%%%
+% Preamble %
+%%%%%%%%%%%%
+
+% Coments, delete chunks of text
+\newcommand{\mute}[1]{}
+
+% Redefine Orcid ID
+% \renewcommand{\orcidID}[1]{\textsuperscript{\orcidlink{#1}}}
+
+% Enviroments
+\newtheorem{thm}{Theorem}
+\newtheorem{pps}{Proposition}
+\newtheorem{lmm}{Lemma}
+\newtheorem{crl}{Corolary}
+\newtheorem*{idea}{Idea}
+\newtheorem{prb}{Problem}
+
+\theoremstyle{definition}
+\newtheorem{defi}{Definition}[\NUMBERING]
+\newtheorem{exm}{Example}[\NUMBERING]
+\newtheorem{clm}{Claim}[\NUMBERING]
+\newtheorem{tsk}{Task}[\NUMBERING]
+\newtheorem{remark}{Remark}[\NUMBERING]
+\newtheorem*{sol}{Solution}
+
+% Enviroment delimiters
+\AtEndEnvironment{sol}{\null\hfill\qed}
+\AtEndEnvironment{defi}{\null\hfill\textasteriskcentered}
+\AtEndEnvironment{remark}{\null\hfill\textasteriskcentered}
+\AtEndEnvironment{clm}{\null\hfill\textasteriskcentered}
+\AtEndEnvironment{exm}{\null\hfill\dag}
+\AtEndEnvironment{tsk}{\null\hfill\dag}
+
+% Math commands
+% Black-board Letters
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\KK}{\mathbb{K}}
+\newcommand{\LL}{\mathbb{L}}
+% TODO Caligraphic letters
+
+% Delimiters
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}
+\DeclarePairedDelimiter\enorm{\lvert\!\lvert\!\lvert}{\rvert\!\rvert\!\rvert}
+
+\DeclareMathOperator{\dom}{dom}
+\DeclareMathOperator{\id}{id}
+
+% Convex hull/closed convex hull
+\DeclareMathOperator{\ch}{co}
+\newcommand{\cch}{\overline{\ch}}
+\DeclareMathOperator{\diag}{diag}
+
+% Linear algebra
+\DeclareMathOperator{\lspan}{span}
+\newcommand{\cspan}{\overline{\lspan}}
+\DeclareMathOperator{\range}{ran}
+
+% Metric Spaces and Topology
+\DeclareMathOperator{\dist}{dist}
+\DeclareMathOperator{\diam}{diam}
+\DeclareMathOperator{\interior}{int}
+\DeclareMathOperator{\exterior}{ext}
+
+% Analysis, Measure Theory
+\DeclareMathOperator{\wlim}{\omega-lim}
+\DeclareMathOperator{\wslim}{\omega^*-lim}
+\DeclareMathOperator{\loc}{loc}
+\DeclareMathOperator{\supp}{supp}
+% \newcommand{\dint}{\displaystyle\int}
+% \newcommand{\diint}{\displaystyle\iint}
+% \newcommand{\diiint}{\displaystyle\iiint}
+
+%% Differentials
+\newcommand{\df}{{\rm d}f}
+\newcommand{\dx}{{\rm d}x}
+\newcommand{\dy}{{\rm d}y}
+\newcommand{\dz}{{\rm d}z}
+\newcommand{\dt}{{\rm d}t}
+
+\newcommand{\dxy}{{\rm d}(x,y)}
+\newcommand{\dxyz}{{\rm d}(x,y,z)}
+
+\newcommand{\ds}{{\rm d}s}
+\newcommand{\dS}{{\rm d}S}
+\newcommand{\dV}{{\rm d}V}
+\newcommand{\dA}{{\rm d}A}
+
+\newcommand{\dpf}{\partial f}
+\newcommand{\dpx}{\partial x}
+\newcommand{\dpy}{\partial y}
+\newcommand{\dpz}{\partial z}
