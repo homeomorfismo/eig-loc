@@ -128,9 +128,352 @@ We define a new triangulation \(\Omega_{(n+1)}\) at iteration \(n+1\) by bisecti
 We consider an L-shaped domain [REFERENCE NEEDED].
 We set the threshold \(\theta = 0.75\) and an initial mesh size of \(h \approx 0.1\).
 
-[PLOTS NEEDED]
-[TABLES NEEDED]
-[SEQUENCE OF MESHES NEEDED]
+% PGFPlots
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{semilogxaxis}[
+            xlabel={Number of degrees of freedom},
+            ylabel={Eigenvalues},
+            legend pos=south west,
+            grid=major,
+            cycle list name=cblist,
+            xmin=150, xmax=257000,
+            legend entries={
+                {\(\lambda_{i,n}\)},
+                {\(\lambda_{i,N}\)},
+            },
+        ]
+        \addplot[only marks] table[x=Ndofs, y=Evals, col sep=comma] {eigenvalues.csv};
+        % Add horizontal lines
+        \addplot[mark=none, samples=20] coordinates { (159, 485.7222447031804) (256900, 485.7222447031804)};
+        \node [pin=0:{\(\lambda_{0,N} = 485.7222447031804\)}] at (axis cs: 256900, 485.7222447031804) {};
+        \addplot[mark=none, samples=20] coordinates { (159, 490.1641386920197) (256900, 490.1641386920197)};
+        \node [pin=0:{\(\lambda_{1,N} = 490.1641386920197\)}] at (axis cs: 256900, 490.1641386920197) {};
+        \addplot[mark=none, samples=20] coordinates { (159, 493.48390547991005) (256900, 493.48390547991005)};
+        \addplot[mark=none, samples=20] coordinates { (159, 493.48401556963995) (256900, 493.48401556963995)};
+        \addplot[mark=none, samples=20] coordinates { (159, 493.48452662344147) (256900, 493.48452662344147)};
+        \node [pin=0:{\(\lambda_{2,N} \approx \lambda_{3,N} \approx \lambda_{4,N} \approx 50\pi^2\)}] at (axis cs: 256900, 493.48452662344147) {};
+        \addplot[mark=none, samples=20] coordinates { (159, 499.24505256207357) (256900, 499.24505256207357)};
+        \node [pin=0:{\(\lambda_{5,N} = 499.24505256207357\)}] at (axis cs: 256900, 499.24505256207357) {};
+        \addplot[mark=none, samples=20] coordinates { (159, 502.3049699107303) (256900, 502.3049699107303)};
+        \node [pin=0:{\(\lambda_{6,N} = 502.3049699107303\)}] at (axis cs: 256900, 502.3049699107303) {};
+        \end{semilogxaxis}
+    \end{tikzpicture}
+    \caption{
+        Eigenvalues inside the interval \([50\pi^2 - 10, 50\pi^2 + 10]\).
+        \(\lambda_{i,n}\) denotes the \(i\)-th eigenvalue at \(n\)-th iteration, and \(\lambda_{i,N}\) denotes the \(i\)-th eigenvalue at the final iteration.
+        Here, \(\lambda_{0,N} = 485.7222447031804\), \(\lambda_{1,N} = 490.1641386920197\), \(\lambda_{2,N} \approx \lambda_{3,N} \approx \lambda_{4,N} \approx 50\pi^2\), \(\lambda_{5,N} = 499.24505256207357\), and \(\lambda_{6,N} = 502.3049699107303\).
+    }
+    \label{fig:eigenvalues}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{loglogaxis}[
+            xlabel={Number of degrees of freedom},
+            ylabel={Error estimator},
+            legend entries={\(\eta\)},
+            legend pos=south west,
+            cycle list name=cblist,
+            grid=major,
+        ]
+        \addplot table[x=Ndofs, y={Eta}, col sep=comma] {error_estimator.csv};
+        \end{loglogaxis}
+    \end{tikzpicture}
+    \caption{Error estimator \(\eta := \eta(u)\) as a function of the number of degrees of freedom.}
+    \label{fig:error}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{loglogaxis}[
+            xlabel={Number of degrees of freedom},
+            ylabel={Error estimator},
+            legend entries={{\(\eta_0\)},
+                            {\(\eta_1\)},
+                            {\(\eta_2\)},
+                            {\(\eta_3\)},
+                            {\(\eta_4\)},
+                            {\(\eta_5\)},
+                            {\(\eta_6\)}},
+            legend pos=south west,
+            cycle list name=cblist,
+            grid=major,
+        ]
+        % \addplot table[x=Ndofs, y={Eta}, col sep=comma] {error_estimator.csv};
+        \addplot table[x=Ndofs, y=Eta Eigenvalue 0, col sep=comma] {error_estimator.csv};
+        \addplot table[x=Ndofs, y=Eta Eigenvalue 1, col sep=comma] {error_estimator.csv};
+        \addplot table[x=Ndofs, y=Eta Eigenvalue 2, col sep=comma] {error_estimator.csv};
+        \addplot table[x=Ndofs, y=Eta Eigenvalue 3, col sep=comma] {error_estimator.csv};
+        \addplot table[x=Ndofs, y=Eta Eigenvalue 4, col sep=comma] {error_estimator.csv};
+        \addplot table[x=Ndofs, y=Eta Eigenvalue 5, col sep=comma] {error_estimator.csv};
+        \addplot table[x=Ndofs, y=Eta Eigenvalue 6, col sep=comma] {error_estimator.csv};
+        \end{loglogaxis}
+    \end{tikzpicture}
+    \caption{Error estimator \(\eta_i := \eta(\psi_i, \lambda_i)\) as a function of the number of degrees of freedom.}
+    \label{fig:error}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{loglogaxis}[
+            xlabel={Number of degrees of freedom},
+            ylabel={\(\left\lvert \lambda_{i,n} - \lambda_{i,N} \right\rvert\)},
+            cycle list name=cblist,
+            legend pos=south west,
+            grid=major,
+            % xmin=150, xmax=257000,
+            legend entries={\(\operatorname{err}_0\),
+                            \(\operatorname{err}_1\),
+                            \(\operatorname{err}_2\),
+                            \(\operatorname{err}_3\),
+                            \(\operatorname{err}_4\),
+                            \(\operatorname{err}_5\),
+                            \(\operatorname{err}_6\)},
+        ]
+        \addplot table[x=Ndofs, y=Error Eigenvalue 0, col sep=comma] {error_eigenvalues.csv};
+        \addplot table[x=Ndofs, y=Error Eigenvalue 1, col sep=comma] {error_eigenvalues.csv};
+        \addplot table[x=Ndofs, y=Error Eigenvalue 2, col sep=comma] {error_eigenvalues.csv};
+        \addplot table[x=Ndofs, y=Error Eigenvalue 3, col sep=comma] {error_eigenvalues.csv};
+        \addplot table[x=Ndofs, y=Error Eigenvalue 4, col sep=comma] {error_eigenvalues.csv};
+        \addplot table[x=Ndofs, y=Error Eigenvalue 5, col sep=comma] {error_eigenvalues.csv};
+        \addplot table[x=Ndofs, y=Error Eigenvalue 6, col sep=comma] {error_eigenvalues.csv};
+        \end{loglogaxis}
+    \end{tikzpicture}
+    \caption{Error \(\operatorname{err}_i := \left\lvert \lambda_{i,n} - \lambda_{i,N} \right\rvert\) as a function of the number of degrees of freedom.}
+    \label{fig:error_alt}
+\end{figure}
+
+% Tables
+\begin{table}[h!]
+    \begin{center}
+        \label{tab:convergence}
+        \pgfplotstabletypeset[
+            col sep=comma,
+            % columns={Ndofs, Ratio 0, Ratio 1, Ratio 2, Ratio 3, Ratio 4, Ratio 5, Ratio 6},
+            columns/Ndofs/.style={
+                column name={\#\textsc{DoFs}},
+                int detect,
+                column type={c}
+            },
+            columns/Ratio 0/.style={
+                column name={\(\operatorname{ord}_0\)},
+                precision=2,
+                fixed zerofill,
+                column type={c}
+            },
+            columns/Ratio 1/.style={
+                column name={\(\operatorname{ord}_1\)},
+                precision=2,
+                fixed zerofill,
+                column type={c}
+            },
+            columns/Ratio 2/.style={
+                column name={\(\operatorname{ord}_2\)},
+                precision=2,
+                fixed zerofill,
+                column type={c}
+            },
+            columns/Ratio 3/.style={
+                column name={\(\operatorname{ord}_3\)},
+                precision=2,
+                fixed zerofill,
+                column type={c}
+            },
+            columns/Ratio 4/.style={
+                column name={\(\operatorname{ord}_4\)},
+                precision=2,
+                fixed zerofill,
+                column type={c}
+            },
+            columns/Ratio 5/.style={
+                column name={\(\operatorname{ord}_5\)},
+                precision=2,
+                fixed zerofill,
+                column type={c}
+            },
+            columns/Ratio 6/.style={
+                column name={\(\operatorname{ord}_6\)},
+                precision=2,
+                fixed zerofill,
+                column type={c}
+            },
+            ]{convergence_ratio_eigenvalues.csv}
+        \caption{
+            Order of convergence of the eigenvalues.
+            Here, \(\operatorname{err}_i \approx C_i N(h)^{-\operatorname{ord}_i}\).
+        }
+    \end{center}
+\end{table}
+
+\begin{table}
+    \begin{center}
+        \label{tab:error}
+        \pgfplotstabletypeset[
+            col sep=comma,
+            columns={Ndofs, Ratio},
+            columns/Ndofs/.style={
+                column name={\#\textsc{DoFs}},
+                int detect,
+                column type={c}
+            },
+            columns/Ratio/.style={
+                column name={\(\operatorname{ord}\)},
+                precision=2,
+                fixed zerofill,
+                column type={c}
+            },
+            % columns/Ratio 0/.style={
+            %     column name={\(\operatorname{ord}(\lambda_0, \psi)\)},
+            %     precision=2,
+            %     fixed zerofill,
+            %     column type={c}
+            % },
+            % columns/Ratio 1/.style={
+            %     column name={\(\operatorname{ord}(\lambda_1, \psi)\)},
+            %     precision=2,
+            %     fixed zerofill,
+            %     column type={c}
+            % },
+            % columns/Ratio 2/.style={
+            %     column name={\(\operatorname{ord}(\lambda_2, \psi)\)},
+            %     precision=2,
+            %     fixed zerofill,
+            %     column type={c}
+            % },
+            % columns/Ratio 3/.style={
+            %     column name={\(\operatorname{ord}(\lambda_3, \psi)\)},
+            %     precision=2,
+            %     fixed zerofill,
+            %     column type={c}
+            % },
+            % columns/Ratio 4/.style={
+            %     column name={\(\operatorname{ord}(\lambda_4, \psi)\)},
+            %     precision=2,
+            %     fixed zerofill,
+            %     column type={c}
+            % },
+            % columns/Ratio 5/.style={
+            %     column name={\(\operatorname{ord}(\lambda_5, \psi)\)},
+            %     precision=2,
+            %     fixed zerofill,
+            %     column type={c}
+            % },
+            % columns/Ratio 6/.style={
+            %     column name={\(\operatorname{ord}(\lambda_6, \psi)\)},
+            %     precision=2,
+            %     fixed zerofill,
+            %     column type={c}
+            % },
+            ]{convergence_ratio_error_estimators.csv}
+        \caption{
+            Order of convergence of the landscape error estimator.
+            Here, \(\eta \approx C N(h)^{-\operatorname{ord}}\).
+        }
+    \end{center}
+\end{table}
+
+\begin{figure}[htbp]
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{mesh_0.png}
+        \caption{Initial mesh.}
+        \label{fig:mesh_0}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        % \includegraphics[width=0.5\textwidth, trim={30cm 60cm 30cm 60cm}, clip]{mesh_10.png}
+        \includegraphics[width=\textwidth]{mesh_10.png}
+        \caption{Mesh after ten iterations.}
+        \label{fig:mesh_10}
+    \end{subfigure}
+    \vspace{1cm}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        % \includegraphics[width=0.5\textwidth, trim={30cm 60cm 30cm 60cm}, clip]{mesh_20.png}
+        \includegraphics[width=\textwidth]{mesh_20.png}
+        \caption{Mesh after twenty iterations.}
+        \label{fig:mesh_20}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        % \includegraphics[width=0.5\textwidth, trim={30cm 60cm 30cm 60cm}, clip]{mesh_30.png}
+        \includegraphics[width=\textwidth]{mesh_30.png}
+        \caption{Mesh after thirty iterations.}
+        \label{fig:mesh_30}
+    \end{subfigure}
+    \vspace{1cm}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        % \includegraphics[width=0.5\textwidth, trim={30cm 60cm 30cm 60cm}, clip]{mesh_40.png}
+        \includegraphics[width=\textwidth]{mesh_40.png}
+        \caption{Mesh after forty iterations.}
+        \label{fig:mesh_40}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        % \includegraphics[width=0.5\textwidth, trim={30cm 60cm 30cm 60cm}, clip]{mesh_49.png}
+        \includegraphics[width=\textwidth]{mesh_49.png}
+        \caption{Final mesh.}
+        \label{fig:mesh_50}
+    \end{subfigure}
+    \caption{Meshes during the adaptive algorithm.}
+\end{figure}
+
+% Eigenfunctions
+\begin{figure}[htbp]
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ev0}
+        \caption{Eigenfunction \(\psi_0\).}
+        \label{fig:eigenfunction_0}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ev1}
+        \caption{Eigenfunction \(\psi_1\).}
+        \label{fig:eigenfunction_1}
+    \end{subfigure}
+    \vspace{1cm}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ev2}
+        \caption{Eigenfunction \(\psi_2\).}
+        \label{fig:eigenfunction_2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ev3}
+        \caption{Eigenfunction \(\psi_3\).}
+        \label{fig:eigenfunction_3}
+    \end{subfigure}
+    \vspace{1cm}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ev4}
+        \caption{Eigenfunction \(\psi_4\).}
+        \label{fig:eigenfunction_4}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ev5}
+        \caption{Eigenfunction \(\psi_5\).}
+        \label{fig:eigenfunction_5}
+    \end{subfigure}
+    \vspace{1cm}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ev6}
+        \caption{Eigenfunction \(\psi_6\).}
+        \label{fig:eigenfunction_6}
+    \end{subfigure}
+    \caption{Norm of the eigenfunctions \(\psi_i\) for \(i = 0, \ldots, 6\) at the final iteration of the adaptive algorithm.}
+\end{figure}
+
 
 \section{``Universality'' of the landscape-function-driven adaptive algorithm}
 

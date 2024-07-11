@@ -17,8 +17,7 @@ TIME_DELAY = 0.5  # seconds
 
 ORDER = 2
 IS_COMPLEX = True
-MAX_ITER = 50
-# MAX_ITER = 5
+MAX_ITER = 45
 THETA = 0.75
 
 # FEAST parameters
@@ -157,7 +156,10 @@ def assemble(*args):
                 pass
 
 
-if __name__ == "__main__":
+def adaptivity_by_landscape():
+    """
+    Perform adaptivity by the landscape error estimator.
+    """
     mesh = reset_mesh()
     fes = ng.H1(
         mesh, order=ORDER, complex=IS_COMPLEX, dirichlet="boundary", autoupdate=True
@@ -186,12 +188,12 @@ if __name__ == "__main__":
     Evals = []
 
     # Main loop
-    input("Press Enter to start the loop")
+    input("DESCRIPTION: Adaptivity by landscape")
     while iteration < MAX_ITER:
         # Draw mesh
         ng.Draw(mesh, name="Mesh")
         time.sleep(TIME_DELAY)
-        ngi.SnapShot(f"mesh_{iteration}.png")
+        ngi.SnapShot(f"mesh_landscape_{iteration}.png")
         # Update
         assemble(a, m, f)
         iteration += 1
@@ -221,6 +223,8 @@ if __name__ == "__main__":
         # ---   Estimate   ---
         eta_ls, _ = error_estimator_landscape(sol)
         max_eta_ls = np.max(eta_ls)
+        # Here we *monitor* the individual error estimators for each eigenvalue
+        # so eta_ev = (max_T(eta_1), max_T(eta_2), ..., max_T(eta_N))
         etas = []
         for i in range(right.m):
             eta, _ = error_estimator_ev(right.gridfun(i=i), evalues[i])
@@ -244,6 +248,7 @@ if __name__ == "__main__":
 
     ng.Draw(sol, mesh, name="Landscape")
     ng.Draw(right.gridfun(i=None), mesh, name="evs")
+    input("\tGet pictures! Then press Enter to continue")
 
     # --- Dataframes ---
     Ndofs = np.array(Ndofs)
@@ -261,7 +266,7 @@ if __name__ == "__main__":
             "Evals": long_evals,
         }
     )
-    df.to_csv("eigenvalues.csv", index=False)
+    df.to_csv("eigenvalues_landscape.csv", index=False)
 
     res_ndofs = Ndofs[Ndofs > 2.0 * 1e4]
     slice_index = list(Ndofs).index(res_ndofs[0])
@@ -282,7 +287,7 @@ if __name__ == "__main__":
             "Error Eigenvalue 6": error[:, 6],
         }
     )
-    df.to_csv("error_eigenvalues.csv", index=False)
+    df.to_csv("error_eigenvalues_landscape.csv", index=False)
 
     res_eta = np.array(Eta[slice_index:])
     res_eta_ev = np.array(Eta_ev[slice_index:])
@@ -291,7 +296,173 @@ if __name__ == "__main__":
         {
             "Ndofs": res_ndofs,
             "Eta": res_eta,
-            "Eta_ev": res_eta_ev,
+            "Eta Eigenvalue 0": res_eta_ev[:, 0],
+            "Eta Eigenvalue 1": res_eta_ev[:, 1],
+            "Eta Eigenvalue 2": res_eta_ev[:, 2],
+            "Eta Eigenvalue 3": res_eta_ev[:, 3],
+            "Eta Eigenvalue 4": res_eta_ev[:, 4],
+            "Eta Eigenvalue 5": res_eta_ev[:, 5],
+            "Eta Eigenvalue 6": res_eta_ev[:, 6],
         }
     )
-    df.to_csv("error_estimator.csv", index=False)
+    df.to_csv("error_estimator_landscape.csv", index=False)
+
+
+def adaptivity_by_eigenvalues():
+    """
+    Perform adaptivity by the eigenvalues error estimators.
+    """
+    mesh = reset_mesh()
+    fes = ng.H1(
+        mesh, order=ORDER, complex=IS_COMPLEX, dirichlet="boundary", autoupdate=True
+    )
+
+    u, v = fes.TnT()
+
+    a = ng.BilinearForm(fes)
+    a += ng.grad(u) * ng.grad(v) * ng.dx
+
+    m = ng.BilinearForm(fes)
+    m += u * v * ng.dx
+
+    f = ng.LinearForm(fes)
+    f += 1.0 * v * ng.dx
+
+    assemble(a, m, f)
+
+    iteration = 0
+    sol = ng.GridFunction(fes, name="Landscape", autoupdate=True)
+
+    # --- Lists ---
+    Ndofs = []
+    Eta = []
+    Eta_ev = []
+    Evals = []
+
+    # Main loop
+    input("DESCRIPTION: Adaptivity by eigenvalues")
+    while iteration < MAX_ITER:
+        # Draw mesh
+        ng.Draw(mesh, name="Mesh")
+        time.sleep(TIME_DELAY)
+        ngi.SnapShot(f"mesh_eigenvalues_{iteration}.png")
+        # Update
+        assemble(a, m, f)
+        iteration += 1
+        # Solve
+        sol.vec.data = a.mat.Inverse(fes.FreeDofs()) * f.vec
+        # --- Init  call FEAST ---
+        # Set clean eigenspace (required for adaptivity)
+        right = NGvecs(fes, NSPAN)
+        right.setrandom()
+        left = NGvecs(fes, NSPAN)
+        left.setrandom()
+        # Set spectral projector
+        projector = SpectralProjNG(
+            fes,
+            a.mat,
+            m.mat,
+            checks=CHECKS,
+            radius=RADIUS,
+            center=CENTER,
+            npts=NPTS,
+            verbose=False,
+        )
+        # Call FEAST
+        evalues, right, history, _ = projector.feast(right, **FEAST_PARAMS)
+        assert history[-1], "FEAST did not converge"
+        # --- End  call  FEAST ---
+        # ---   Estimate   ---
+        eta_ls, _ = error_estimator_landscape(sol)
+        max_eta_ls = np.max(eta_ls)
+        # Here we *use* a greedy strategy to select the maximum error estimator
+        # so eta_ev = (max_i(eta_i(T))_T, i.e., a element-indexed vector
+        etas = []
+        for i in range(right.m):
+            eta, _ = error_estimator_ev(right.gridfun(i=i), evalues[i])
+            etas.append(eta)
+        etas = np.stack(etas, axis=0)
+        eta_ev_monitored = np.max(etas, axis=1)
+        eta_ev = np.max(etas, axis=0)
+        max_eta_ev = np.max(eta_ev)
+        # --- End Estimate ---
+        # Mark
+        mesh.ngmesh.Elements2D().NumPy()["refine"] = eta_ev > THETA * max_eta_ev
+        # Store
+        Ndofs.append(fes.ndof)
+        Eta.append(max_eta_ls)
+        # TODO
+        Eta_ev.append(eta_ev_monitored)
+        Evals.append(np.array(evalues))
+        # Refine
+        if iteration == MAX_ITER:
+            break
+        mesh.Refine()
+        del right, left, projector, history, evalues, etas
+        gc.collect()
+
+    ng.Draw(sol, mesh, name="Landscape")
+    ng.Draw(right.gridfun(i=None), mesh, name="evs")
+    input("\tGet pictures! Then press Enter to continue")
+
+    # --- Dataframes ---
+    Ndofs = np.array(Ndofs)
+    long_ndofs = []
+    long_evals = []
+    for ndof, evs in zip(np.array(Ndofs), Evals):
+        long_ndofs.extend([ndof] * len(evs))
+        long_evals.extend(list(evs.real))
+    long_evals = np.array(long_evals)
+    long_ndofs = np.array(long_ndofs)
+
+    df = pd.DataFrame(
+        {
+            "Ndofs": long_ndofs,
+            "Evals": long_evals,
+        }
+    )
+    df.to_csv("eigenvalues_eigenvalues.csv", index=False)
+
+    res_ndofs = Ndofs[Ndofs > 2.0 * 1e4]
+    slice_index = list(Ndofs).index(res_ndofs[0])
+    res_evs = Evals[slice_index:]
+    error = np.array(
+        [np.abs(res_evs[i] - res_evs[-1]) for i in range(0, len(res_ndofs) - 1)]
+    )
+
+    df = pd.DataFrame(
+        {
+            "Ndofs": res_ndofs[1:],
+            "Error Eigenvalue 0": error[:, 0],
+            "Error Eigenvalue 1": error[:, 1],
+            "Error Eigenvalue 2": error[:, 2],
+            "Error Eigenvalue 3": error[:, 3],
+            "Error Eigenvalue 4": error[:, 4],
+            "Error Eigenvalue 5": error[:, 5],
+            "Error Eigenvalue 6": error[:, 6],
+        }
+    )
+    df.to_csv("error_eigenvalues_eigenvalues.csv", index=False)
+
+    res_eta = np.array(Eta[slice_index:])
+    res_eta_ev = np.array(Eta_ev[slice_index:])
+
+    df = pd.DataFrame(
+        {
+            "Ndofs": res_ndofs,
+            "Eta": res_eta,
+            "Eta Eigenvalue 0": res_eta_ev[:, 0],
+            "Eta Eigenvalue 1": res_eta_ev[:, 1],
+            "Eta Eigenvalue 2": res_eta_ev[:, 2],
+            "Eta Eigenvalue 3": res_eta_ev[:, 3],
+            "Eta Eigenvalue 4": res_eta_ev[:, 4],
+            "Eta Eigenvalue 5": res_eta_ev[:, 5],
+            "Eta Eigenvalue 6": res_eta_ev[:, 6],
+        }
+    )
+    df.to_csv("error_estimator_eigenvalues.csv", index=False)
+
+
+if __name__ == "__main__":
+    # adaptivity_by_landscape()
+    adaptivity_by_eigenvalues()

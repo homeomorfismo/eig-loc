@@ -496,3 +496,7 @@ TSWLatexianTemp*
 
 # glossaries
 *.glstex
+
+# Pictures
+*.jpg
+*.png
