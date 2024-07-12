@@ -464,5 +464,5 @@ def adaptivity_by_eigenvalues():
 
 
 if __name__ == "__main__":
-    # adaptivity_by_landscape()
-    adaptivity_by_eigenvalues()
+    adaptivity_by_landscape()
+    # adaptivity_by_eigenvalues()
