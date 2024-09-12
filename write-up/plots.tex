@@ -838,3 +838,257 @@
     \end{subfigure}
     \caption{Norm of the eigenfunctions \(\psi_i\) for \(i = 0, \ldots, 6\) at the final iteration of the adaptive algorithm, under eigenvalue-driven refinement.}
 \end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Now check the lower spectrum on landscape/low_spect
+% (Real part of) eigenvalues of the Laplacian on the unit square with Dirichlet boundary conditions
+% first 5 eigenvalues.
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{semilogxaxis}[
+            xlabel={Number of degrees of freedom},
+            ylabel={Eigenvalues},
+            legend pos=south west,
+            grid=major,
+            cycle list name=cblist,
+            xmin=150,
+            xmax=120000,
+            clip=false,
+            forget plot style={black!75, dotted},
+            legend entries={
+                {\(\lambda_{i,n}\)},
+                {\(\lambda_{i,N}\)},
+            },
+        ]
+        % Add data
+        % \addplot+ [only marks] table[x=Ndofs, y=Evals, col sep=comma] {eigenvalues_landscape.csv};
+        \addplot+ [only marks] table[x=Ndofs, y=Evals, col sep=comma] {landscape/low_spect/eigenvalues_landscape.csv};
+
+        % Add horizontal lines
+        \addplot[forget plot, mark=none, samples=20] coordinates { (159, 9.6397238)  (120000, 9.6397238)};
+        \addplot[forget plot, mark=none, samples=20] coordinates { (159, 15.197252)  (120000, 15.197252)};
+        \addplot[forget plot, mark=none, samples=20] coordinates { (159, 19.739209)  (120000, 19.739209)};
+        \addplot[forget plot, mark=none, samples=20] coordinates { (159, 29.521481)  (120000, 29.521481)};
+        \addplot[forget plot, mark=none, samples=20] coordinates { (159, 31.912636)  (120000, 31.912636)};
+
+        % Add markers
+        \node [pin=right:{\(\lambda_{0}\)}] at (axis cs: 100000, 9.6397238) {};
+        \node [pin=right:{\(\lambda_{1}\)}] at (axis cs: 100000, 15.197252) {};
+        \node [pin=right:{\(\lambda_{2}\)}] at (axis cs: 100000, 19.739209) {};
+        \node [pin=right:{\(\lambda_{3}\)}] at (axis cs: 100000, 29.521481) {};
+        \node [pin=right:{\(\lambda_{4}\)}] at (axis cs: 100000, 31.912636) {};
+
+        \end{semilogxaxis}
+    \end{tikzpicture}
+    \caption{
+        Eigenvalues inside the interval \([15 - 20, 15 + 20]\), under \emph{landscape-driven refinement}.
+        \(\lambda_{i,n}\) denotes the \(i\)-th eigenvalue at \(n\)-th iteration, and \(\lambda_{i,N}\) denotes the \(i\)-th eigenvalue at the final iteration.
+        Here, \(\lambda_{0} \approx 9.6397238\),
+        \(\lambda_{1} \approx 15.197252\),
+        \(\lambda_{2} \approx 19.739209\),
+        \(\lambda_{3} \approx 29.521481\), and
+        \(\lambda_{4} \approx 31.912636\).
+    }
+    \label{fig:eigenvalues-landscape}
+\end{figure}
+
+% Evolution of the error estimator \(\eta := \eta(u)\) as a function of the number of degrees of freedom.
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{loglogaxis}[
+            xlabel={Number of degrees of freedom},
+            ylabel={Error estimator},
+            legend entries={\(\eta\)},
+            legend pos=south west,
+            cycle list name=cblist,
+            grid=major,
+            forget plot style={black!75, dotted},
+        ]
+        \addplot+ table[x=Ndofs, y={Eta}, col sep=comma] {landscape/low_spect/error_estimator_landscape.csv};
+        \addplot [forget plot] table [
+            col sep=comma,
+            x=Ndofs,
+            y={create col/linear regression={
+                y=Eta
+                % variance list={1000,800,600,500,400,200,100}
+                }
+            }] {landscape/low_spect/error_estimator_landscape.csv}
+            coordinate [pos=0.8] (A)
+            coordinate [pos=0.9] (B);
+        \xdef\slope{\pgfplotstableregressiona}
+        \draw (A) -| (B) node[pos=0.75, anchor=west] {\(\pgfmathprintnumber{\slope}\)};
+        \end{loglogaxis}
+    \end{tikzpicture}
+    \caption{Error estimator \(\eta := \eta(u)\) (based on the landscape function \(u\)) as a function of the number of degrees of freedom.}
+    \label{fig:ee-landscape}
+\end{figure}
+
+
+% Monitoring the behavior of the error estimator \(\eta_i := \eta(\psi_i, \lambda_i)\) as a function of the number of degrees of freedom.
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{loglogaxis}[
+            xlabel={Number of degrees of freedom},
+            ylabel={Error estimator},
+            legend entries={{\(\eta_0\)},
+                            {\(\eta_1\)},
+                            {\(\eta_2\)},
+                            {\(\eta_3\)},
+                            {\(\eta_4\)},
+                            % {\(\eta_5\)},
+                            % {\(\eta_6\)},
+                            },
+            legend pos=south west,
+            cycle list name=cblist,
+            grid=major,
+            forget plot style={black!75, dotted},
+        ]
+        % \addplot table[x=Ndofs, y={Eta}, col sep=comma] {error_estimator.csv};
+        \addplot+ table[x=Ndofs, y=Eta Eigenvalue 0, col sep=comma] {landscape/low_spect/error_estimator_landscape.csv};
+        \addplot+ table[x=Ndofs, y=Eta Eigenvalue 1, col sep=comma] {landscape/low_spect/error_estimator_landscape.csv};
+        \addplot+ table[x=Ndofs, y=Eta Eigenvalue 2, col sep=comma] {landscape/low_spect/error_estimator_landscape.csv};
+        \addplot+ table[x=Ndofs, y=Eta Eigenvalue 3, col sep=comma] {landscape/low_spect/error_estimator_landscape.csv};
+        \addplot+ table[x=Ndofs, y=Eta Eigenvalue 4, col sep=comma] {landscape/low_spect/error_estimator_landscape.csv};
+
+        \addplot [forget plot] table[
+            x=Ndofs,
+            y={create col/linear regression={y=Eta Eigenvalue 0}},
+            col sep=comma] {landscape/low_spect/error_estimator_landscape.csv}
+            coordinate [pos=0.8] (A)
+            coordinate [pos=0.9] (B);
+        \xdef\slope{\pgfplotstableregressiona}
+        \draw (A) -| (B) node[pos=0.75, anchor=west] {\(\pgfmathprintnumber{\slope}\)};
+
+        \addplot [forget plot] table[
+            x=Ndofs,
+            y={create col/linear regression={y=Eta Eigenvalue 4}},
+            col sep=comma] {landscape/low_spect/error_estimator_landscape.csv}
+            coordinate [pos=0.6] (A)
+            coordinate [pos=0.7] (B);
+        \xdef\slopee{\pgfplotstableregressiona}
+        \draw (A) -| (B) node[pos=0.75, anchor=west] {\(\pgfmathprintnumber{\slopee}\)};
+
+        \end{loglogaxis}
+    \end{tikzpicture}
+    \caption{Error estimator \(\eta_i := \eta(\psi_i, \lambda_i)\) as a function of the number of degrees of freedom, under landscape-driven refinement.}
+    \label{fig:ev-ee-landscape}
+\end{figure}
+
+% Visualizing the error of the eigenvalues, after landscape-driven refinement.
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{loglogaxis}[
+            forget plot style={black!75, dotted},
+            xlabel={Number of degrees of freedom},
+            ylabel={\(\left\lvert \lambda_{i,n} - \lambda_{i,N} \right\rvert\)},
+            cycle list name=cblist,
+            legend pos=south west,
+            grid=major,
+            % xmin=150, xmax=257000,
+            legend entries={\(\operatorname{err}_0\),
+                            \(\operatorname{err}_1\),
+                            \(\operatorname{err}_2\),
+                            \(\operatorname{err}_3\),
+                            \(\operatorname{err}_4\),
+                            \(\operatorname{err}_5\),
+                            \(\operatorname{err}_6\)},
+        ]
+        \addplot+ table[x=Ndofs, y=Error Eigenvalue 0, col sep=comma] {landscape/low_spect/error_eigenvalues_landscape.csv};
+        \addplot+ table[x=Ndofs, y=Error Eigenvalue 1, col sep=comma] {landscape/low_spect/error_eigenvalues_landscape.csv};
+        \addplot+ table[x=Ndofs, y=Error Eigenvalue 2, col sep=comma] {landscape/low_spect/error_eigenvalues_landscape.csv};
+        \addplot+ table[x=Ndofs, y=Error Eigenvalue 3, col sep=comma] {landscape/low_spect/error_eigenvalues_landscape.csv};
+        \addplot+ table[x=Ndofs, y=Error Eigenvalue 4, col sep=comma] {landscape/low_spect/error_eigenvalues_landscape.csv};
+
+
+        \addplot [forget plot] table[
+            x=Ndofs,
+            y={create col/linear regression={y=Error
+            Eigenvalue 0}},
+            col sep=comma] {landscape/low_spect/error_eigenvalues_landscape.csv}
+            coordinate [pos=0.8] (A)
+            coordinate [pos=0.9] (B);
+        \xdef\slope{\pgfplotstableregressiona}
+        \draw (A) -| (B) node[pos=0.75, anchor=west] {\(\pgfmathprintnumber{\slope}\)};
+        \end{loglogaxis}
+    \end{tikzpicture}
+    \caption{Error \(\operatorname{err}_i := \left\lvert \lambda_{i,n} - \lambda_{i,N} \right\rvert\) as a function of the number of degrees of freedom, under landscape-driven refinement.}
+    \label{fig:error-ev-landscape}
+\end{figure}
+
+% Eigenvalues, after landscape-driven refinement. Absolute value.
+\begin{figure}[htbp]
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{landscape/low_spect/abs_ev0}
+        \caption{Eigenfunction \(\psi_0\).}
+        \label{fig:eigenfunction_0}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{landscape/low_spect/abs_ev1}
+        \caption{Eigenfunction \(\psi_1\).}
+        \label{fig:eigenfunction_1}
+    \end{subfigure}
+    \vspace{1cm}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{landscape/low_spect/abs_ev2}
+        \caption{Eigenfunction \(\psi_2\).}
+        \label{fig:eigenfunction_2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{landscape/low_spect/abs_ev3}
+        \caption{Eigenfunction \(\psi_3\).}
+        \label{fig:eigenfunction_3}
+    \end{subfigure}
+    \vspace{1cm}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{landscape/low_spect/abs_ev4}
+        \caption{Eigenfunction \(\psi_4\).}
+        \label{fig:eigenfunction_4}
+    \end{subfigure}
+    \caption{Norm of the eigenfunctions \(\psi_i\) for \(i = 0, \ldots, 4\) at the final iteration of the adaptive algorithm, under landscape-driven refinement.}
+\end{figure}
+
+% Eigenvalues, after landscape-driven refinement. Real part.
+\begin{figure}[htbp]
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{landscape/low_spect/ev0}
+        \caption{Eigenfunction \(\psi_0\).}
+        \label{fig:eigenfunction_0}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{landscape/low_spect/ev1}
+        \caption{Eigenfunction \(\psi_1\).}
+        \label{fig:eigenfunction_1}
+    \end{subfigure}
+    \vspace{1cm}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{landscape/low_spect/ev2}
+        \caption{Eigenfunction \(\psi_2\).}
+        \label{fig:eigenfunction_2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{landscape/low_spect/ev3}
+        \caption{Eigenfunction \(\psi_3\).}
+        \label{fig:eigenfunction_3}
+    \end{subfigure}
+    \vspace{1cm}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{landscape/low_spect/ev4}
+        \caption{Eigenfunction \(\psi_4\).}
+        \label{fig:eigenfunction_4}
+    \end{subfigure}
+    \caption{(Real part of the) eigenfunctions \(\psi_i\) for \(i = 0, \ldots, 4\) at the final iteration of the adaptive algorithm, under landscape-driven refinement.}
+\end{figure}
