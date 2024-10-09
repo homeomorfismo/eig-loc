@@ -20,8 +20,11 @@ IS_COMPLEX = True
 MAX_ITER = 45
 THETA = 0.75
 
-MAX_NDOFS_LANDSCAPE = 1e4
+# For mixed strategy
+MAX_NDOFS_LANDSCAPE = 8e3
 MAX_NDOFS_EIGENVALUES = 1e5
+# For landscape and eigenvalues refinement
+MAX_NDOFS = 1e5
 
 # FEAST parameters
 NSPAN = 10
@@ -29,6 +32,7 @@ NPTS = 10
 CHECKS = False
 RADIUS = 10.0
 CENTER = 50 * np.pi**2
+REF_EIGS = [485.71752463708, 490.15998172598, 493.48022005447, 493.48022005447, 493.48022005447, 499.24106145290, 502.30119419396]
 
 FEAST_PARAMS = {
     "hermitian": True,
@@ -182,6 +186,7 @@ def adaptivity_by_landscape():
     assemble(a, m, f)
 
     iteration = 0
+    current_ndofs = fes.ndof
     sol = ng.GridFunction(fes, name="Landscape", autoupdate=True)
 
     # --- Lists ---
@@ -192,7 +197,7 @@ def adaptivity_by_landscape():
 
     # Main loop
     input("DESCRIPTION: Adaptivity by landscape")
-    while iteration < MAX_ITER:
+    while current_ndofs < MAX_NDOFS:
         # Draw mesh
         ng.Draw(mesh, name="Mesh")
         time.sleep(TIME_DELAY)
@@ -200,6 +205,7 @@ def adaptivity_by_landscape():
         # Update
         assemble(a, m, f)
         iteration += 1
+        current_ndofs = fes.ndof
         # Solve
         sol.vec.data = a.mat.Inverse(fes.FreeDofs()) * f.vec
         # --- Init  call FEAST ---
@@ -238,12 +244,12 @@ def adaptivity_by_landscape():
         # Mark
         mesh.ngmesh.Elements2D().NumPy()["refine"] = eta_ls > THETA * max_eta_ls
         # Store
-        Ndofs.append(fes.ndof)
+        Ndofs.append(current_ndofs)
         Eta.append(max_eta_ls)
         Eta_ev.append(eta_ev)
         Evals.append(np.array(evalues))
         # Refine
-        if iteration == MAX_ITER:
+        if current_ndofs >= MAX_NDOFS:
             break
         mesh.Refine()
         del right, left, projector, history, evalues, etas
@@ -275,8 +281,11 @@ def adaptivity_by_landscape():
     slice_index = list(Ndofs).index(res_ndofs[0])
     res_evs = Evals[slice_index:]
     error = np.array(
-        [np.abs(res_evs[i] - res_evs[-1]) for i in range(0, len(res_ndofs) - 1)]
+        [np.abs(res_evs[i] - REF_EIGS) for i in range(1, len(res_ndofs))]
     )
+    # error = np.array(
+    #     [np.abs(res_evs[i] - res_evs[-1]) for i in range(0, len(res_ndofs) - 1)]
+    # )
 
     df = pd.DataFrame(
         {
@@ -334,6 +343,7 @@ def adaptivity_by_eigenvalues():
     assemble(a, m, f)
 
     iteration = 0
+    current_ndofs = fes.ndof
     sol = ng.GridFunction(fes, name="Landscape", autoupdate=True)
 
     # --- Lists ---
@@ -344,7 +354,7 @@ def adaptivity_by_eigenvalues():
 
     # Main loop
     input("DESCRIPTION: Adaptivity by eigenvalues")
-    while iteration < MAX_ITER:
+    while current_ndofs < MAX_NDOFS:
         # Draw mesh
         ng.Draw(mesh, name="Mesh")
         time.sleep(TIME_DELAY)
@@ -352,6 +362,7 @@ def adaptivity_by_eigenvalues():
         # Update
         assemble(a, m, f)
         iteration += 1
+        current_ndofs = fes.ndof
         # Solve
         sol.vec.data = a.mat.Inverse(fes.FreeDofs()) * f.vec
         # --- Init  call FEAST ---
@@ -392,13 +403,13 @@ def adaptivity_by_eigenvalues():
         # Mark
         mesh.ngmesh.Elements2D().NumPy()["refine"] = eta_ev > THETA * max_eta_ev
         # Store
-        Ndofs.append(fes.ndof)
+        Ndofs.append(current_ndofs)
         Eta.append(max_eta_ls)
         # TODO
         Eta_ev.append(eta_ev_monitored)
         Evals.append(np.array(evalues))
         # Refine
-        if iteration == MAX_ITER:
+        if current_ndofs >= MAX_NDOFS:
             break
         mesh.Refine()
         del right, left, projector, history, evalues, etas
@@ -430,8 +441,11 @@ def adaptivity_by_eigenvalues():
     slice_index = list(Ndofs).index(res_ndofs[0])
     res_evs = Evals[slice_index:]
     error = np.array(
-        [np.abs(res_evs[i] - res_evs[-1]) for i in range(0, len(res_ndofs) - 1)]
+        [np.abs(res_evs[i] - REF_EIGS) for i in range(1, len(res_ndofs))]
     )
+    # error = np.array(
+    #     [np.abs(res_evs[i] - res_evs[-1]) for i in range(0, len(res_ndofs) - 1)]
+    # )
 
     df = pd.DataFrame(
         {
@@ -688,8 +702,11 @@ def adaptivity_by_mixed_strategy():
     slice_index = list(Ndofs).index(res_ndofs[0])
     res_evs = Evals[slice_index:]
     error = np.array(
-        [np.abs(res_evs[i] - res_evs[-1]) for i in range(0, len(res_ndofs) - 1)]
+        [np.abs(res_evs[i] - REF_EIGS) for i in range(1, len(res_ndofs))]
     )
+    # error = np.array(
+    #     [np.abs(res_evs[i] - res_evs[-1]) for i in range(0, len(res_ndofs) - 1)]
+    # )
 
     df = pd.DataFrame(
         {
@@ -707,6 +724,6 @@ def adaptivity_by_mixed_strategy():
 
 
 if __name__ == "__main__":
-    # adaptivity_by_landscape()
-    # adaptivity_by_eigenvalues()
-    adaptivity_by_mixed_strategy()
+    adaptivity_by_landscape()
+    adaptivity_by_eigenvalues()
+    # adaptivity_by_mixed_strategy()
